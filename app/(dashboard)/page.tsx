@@ -1,13 +1,32 @@
 import Link from "next/link"
-import { formatDistanceToNow } from "date-fns"
+import { format, formatDistanceToNow } from "date-fns"
 import { Phone, TrendingUp, Users, Clock } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCalls } from "@/lib/firestore/calls"
 import { getLeads } from "@/lib/firestore/leads"
+import { PageWrapper } from "@/components/motion/page-wrapper"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
+
+function formatPhoneNumber(phone: string): string {
+  // Remove any non-digit characters
+  const digits = phone.replace(/\D/g, "")
+  
+  // If it's 10 digits, assume US/Canada format
+  if (digits.length === 10) {
+    return `+1 ${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  
+  // If it's 11 digits starting with 1, format as US/Canada
+  if (digits.length === 11 && digits[0] === "1") {
+    return `+1 ${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`
+  }
+  
+  // Otherwise return as-is
+  return phone
+}
 
 export default async function DashboardPage() {
   const [leads, calls] = await Promise.all([getLeads(), getCalls(10)])
@@ -60,7 +79,8 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-8">
+    <PageWrapper>
+      <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="mt-2 text-muted-foreground">Overview of your leads and calls</p>
@@ -109,11 +129,11 @@ export default async function DashboardPage() {
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-3">
                           <span className="font-medium">{call.callerName || "Unknown"}</span>
-                          <span className="text-sm text-muted-foreground">{call.callerPhoneNumber || "No number"}</span>
+                          <span className="text-sm text-muted-foreground">{formatPhoneNumber(call.callerPhoneNumber || "No number")}</span>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">{preview}</p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>{createdAt ? formatDistanceToNow(createdAt, { addSuffix: true }) : "Just now"}</span>
+                          <span>{createdAt ? format(createdAt, "MMM d, yyyy 'at' h:mm a") : "Just now"}</span>
                         </div>
                       </div>
                     </div>
@@ -125,6 +145,7 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
     </div>
+    </PageWrapper>
   )
 }
 

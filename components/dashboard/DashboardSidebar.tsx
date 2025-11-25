@@ -18,10 +18,10 @@ export function DashboardSidebar() {
   const { signOut } = useAuth()
 
   return (
-    <div className="flex w-64 flex-col border-r border-gray-200 bg-white">
-      <div className="flex h-20 items-center justify-center gap-3 border-b border-gray-200 px-6">
+    <div className="flex w-64 flex-col border-r border-border bg-card">
+      <div className="flex h-20 items-center justify-center gap-3 border-b border-border px-6">
         <Plane className="h-5 w-5 text-primary" />
-        <h1 className="text-lg font-semibold text-gray-900 whitespace-nowrap">Voyage Classy Travel</h1>
+        <h1 className="text-lg font-semibold whitespace-nowrap">Voyage Classy Travel</h1>
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
@@ -42,8 +42,8 @@ export function DashboardSidebar() {
           )
         })}
       </nav>
-      <div className="border-t border-gray-200 p-4">
-        <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground" onClick={() => signOut()}>
+      <div className="border-t border-border p-4">
+        <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => signOut()}>
           <LogOut className="h-5 w-5" />
           Sign out
         </Button>
