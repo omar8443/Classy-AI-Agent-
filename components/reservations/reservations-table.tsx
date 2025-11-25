@@ -9,14 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 
 type SerializedReservation = Omit<Reservation, "createdAt" | "updatedAt" | "travelDetails" | "documents" | "history"> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
   travelDetails: Omit<Reservation["travelDetails"], "departureDate" | "returnDate"> & {
-    departureDate: Date
-    returnDate: Date
+    departureDate: string
+    returnDate: string
   }
-  documents: Array<Omit<Reservation["documents"][0], "uploadedAt"> & { uploadedAt: Date }>
-  history: Array<Omit<Reservation["history"][0], "timestamp"> & { timestamp: Date }>
+  documents: Array<Omit<Reservation["documents"][0], "uploadedAt"> & { uploadedAt: string }>
+  history: Array<Omit<Reservation["history"][0], "timestamp"> & { timestamp: string }>
 }
 
 interface ReservationsTableProps {
@@ -124,8 +124,8 @@ export function ReservationsTable({ reservations }: ReservationsTableProps) {
                   <td className="p-4 font-medium">{reservation.reservationId}</td>
                   <td className="p-4">{reservation.travelDetails.destination}</td>
                   <td className="p-4 text-muted-foreground">
-                    {format(reservation.travelDetails.departureDate, "MMM d")} -{" "}
-                    {format(reservation.travelDetails.returnDate, "MMM d, yyyy")}
+                    {format(new Date(reservation.travelDetails.departureDate), "MMM d")} -{" "}
+                    {format(new Date(reservation.travelDetails.returnDate), "MMM d, yyyy")}
                   </td>
                   <td className="p-4 font-medium">
                     {reservation.pricing.currency} ${reservation.pricing.total.toLocaleString()}

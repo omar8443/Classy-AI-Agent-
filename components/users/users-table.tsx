@@ -17,8 +17,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
 
+type SerializedUser = Omit<User, "createdAt" | "updatedAt" | "lastLoginAt"> & {
+  createdAt: string
+  updatedAt: string
+  lastLoginAt: string | null
+}
+
 interface UsersTableProps {
-  users: User[]
+  users: SerializedUser[]
 }
 
 const roleColors: Record<UserRole, string> = {
@@ -137,11 +143,7 @@ export function UsersTable({ users: initialUsers }: UsersTableProps) {
             </thead>
             <tbody>
               {filteredUsers.map((user) => {
-                const lastLogin = user.lastLoginAt
-                  ? user.lastLoginAt instanceof Date
-                    ? user.lastLoginAt
-                    : user.lastLoginAt.toDate?.() || new Date()
-                  : null
+                const lastLogin = user.lastLoginAt ? new Date(user.lastLoginAt) : null
 
                 return (
                   <tr

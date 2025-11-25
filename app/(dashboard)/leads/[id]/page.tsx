@@ -17,18 +17,18 @@ export default async function LeadDetailPage({
     notFound()
   }
 
-  // Serialize dates
+  // Serialize dates to ISO strings for client components
   const serializedLead = {
     ...lead,
-    createdAt: lead.createdAt instanceof Date ? lead.createdAt : lead.createdAt?.toDate?.() || new Date(),
-    updatedAt: lead.updatedAt instanceof Date ? lead.updatedAt : lead.updatedAt?.toDate?.() || new Date(),
+    createdAt: (lead.createdAt instanceof Date ? lead.createdAt : new Date()).toISOString(),
+    updatedAt: (lead.updatedAt instanceof Date ? lead.updatedAt : new Date()).toISOString(),
   }
 
   const serializedCalls = calls.map((call) => ({
     ...call,
-    createdAt: call.createdAt instanceof Date ? call.createdAt : call.createdAt?.toDate?.() || new Date(),
+    createdAt: (call.createdAt instanceof Date ? call.createdAt : new Date()).toISOString(),
     endedAt: call.endedAt 
-      ? (call.endedAt instanceof Date ? call.endedAt : call.endedAt?.toDate?.() || new Date()) 
+      ? (call.endedAt instanceof Date ? call.endedAt : new Date()).toISOString()
       : null,
   }))
 

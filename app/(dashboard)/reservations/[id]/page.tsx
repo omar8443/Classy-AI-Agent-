@@ -19,34 +19,34 @@ export default async function ReservationDetailPage({
 
   const lead = reservation.leadId ? await getLeadById(reservation.leadId) : null
 
-  // Serialize dates
+  // Serialize dates to ISO strings for client components
   const serializedReservation = {
     ...reservation,
-    createdAt: reservation.createdAt instanceof Date ? reservation.createdAt : reservation.createdAt?.toDate?.() || new Date(),
-    updatedAt: reservation.updatedAt instanceof Date ? reservation.updatedAt : reservation.updatedAt?.toDate?.() || new Date(),
+    createdAt: (reservation.createdAt instanceof Date ? reservation.createdAt : new Date()).toISOString(),
+    updatedAt: (reservation.updatedAt instanceof Date ? reservation.updatedAt : new Date()).toISOString(),
     travelDetails: {
       ...reservation.travelDetails,
-      departureDate: reservation.travelDetails.departureDate instanceof Date 
+      departureDate: (reservation.travelDetails.departureDate instanceof Date 
         ? reservation.travelDetails.departureDate 
-        : reservation.travelDetails.departureDate?.toDate?.() || new Date(),
-      returnDate: reservation.travelDetails.returnDate instanceof Date 
+        : new Date()).toISOString(),
+      returnDate: (reservation.travelDetails.returnDate instanceof Date 
         ? reservation.travelDetails.returnDate 
-        : reservation.travelDetails.returnDate?.toDate?.() || new Date(),
+        : new Date()).toISOString(),
     },
     documents: reservation.documents.map((doc) => ({
       ...doc,
-      uploadedAt: doc.uploadedAt instanceof Date ? doc.uploadedAt : doc.uploadedAt?.toDate?.() || new Date(),
+      uploadedAt: (doc.uploadedAt instanceof Date ? doc.uploadedAt : new Date()).toISOString(),
     })),
     history: reservation.history.map((entry) => ({
       ...entry,
-      timestamp: entry.timestamp instanceof Date ? entry.timestamp : entry.timestamp?.toDate?.() || new Date(),
+      timestamp: (entry.timestamp instanceof Date ? entry.timestamp : new Date()).toISOString(),
     })),
   }
 
   const serializedLead = lead ? {
     ...lead,
-    createdAt: lead.createdAt instanceof Date ? lead.createdAt : lead.createdAt?.toDate?.() || new Date(),
-    updatedAt: lead.updatedAt instanceof Date ? lead.updatedAt : lead.updatedAt?.toDate?.() || new Date(),
+    createdAt: (lead.createdAt instanceof Date ? lead.createdAt : new Date()).toISOString(),
+    updatedAt: (lead.updatedAt instanceof Date ? lead.updatedAt : new Date()).toISOString(),
   } : null
 
   return <ReservationDetailClient reservation={serializedReservation} lead={serializedLead} />

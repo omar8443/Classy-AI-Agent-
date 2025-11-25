@@ -12,20 +12,20 @@ import { ArrowLeft, Phone, Mail } from "lucide-react"
 import { statusColors } from "@/lib/constants"
 
 type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
-  createdAt: Date
-  endedAt: Date | null
+  createdAt: string
+  endedAt: string | null
 }
 
 interface LeadDetailClientProps {
   lead: SerializedLead
   calls: SerializedCall[]
   latestSummary: string | null
-  latestCallTimestamp: Date | null
+  latestCallTimestamp: string | null
 }
 
 export function LeadDetailClient({
@@ -108,7 +108,7 @@ export function LeadDetailClient({
               <div>
                 <div className="text-sm text-muted-foreground">Created</div>
                 <div className="font-medium">
-                  {formatDistanceToNow(lead.createdAt, { addSuffix: true })}
+                  {formatDistanceToNow(new Date(lead.createdAt), { addSuffix: true })}
                 </div>
               </div>
             </CardContent>
@@ -123,7 +123,7 @@ export function LeadDetailClient({
                 <>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     {latestCallTimestamp
-                      ? formatDistanceToNow(latestCallTimestamp, { addSuffix: true })
+                      ? formatDistanceToNow(new Date(latestCallTimestamp), { addSuffix: true })
                       : "Recent activity"}
                   </p>
                   <p className="rounded-xl border border-muted bg-muted/20 p-4 text-base text-foreground">

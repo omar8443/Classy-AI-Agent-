@@ -11,8 +11,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 
 type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 interface LeadDetailFormProps {

@@ -8,8 +8,13 @@ import { Lead, LeadStatus } from "@/types/leads"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
+  createdAt: string
+  updatedAt: string
+}
+
 interface LeadsTableProps {
-  leads: Lead[]
+  leads: SerializedLead[]
 }
 
 const statusOptions: LeadStatus[] = ["new", "in_progress", "booked", "closed", "lost"]
@@ -78,7 +83,7 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
             </thead>
             <tbody>
               {filteredLeads.map((lead) => {
-                const updatedAt = lead.updatedAt instanceof Date ? lead.updatedAt : (lead.updatedAt?.toDate?.() || new Date())
+                const updatedAt = new Date(lead.updatedAt)
                 return (
                   <tr
                     key={lead.id}

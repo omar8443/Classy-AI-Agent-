@@ -16,15 +16,13 @@ export default async function UserDetailPage({
     notFound()
   }
 
-  // Serialize Firestore Timestamps to plain objects
+  // Serialize dates to ISO strings for client components
   const serializedUser = {
     ...user,
-    createdAt: user.createdAt instanceof Date ? user.createdAt : user.createdAt?.toDate?.() || new Date(),
-    updatedAt: user.updatedAt instanceof Date ? user.updatedAt : user.updatedAt?.toDate?.() || new Date(),
+    createdAt: (user.createdAt instanceof Date ? user.createdAt : new Date()).toISOString(),
+    updatedAt: (user.updatedAt instanceof Date ? user.updatedAt : new Date()).toISOString(),
     lastLoginAt: user.lastLoginAt
-      ? user.lastLoginAt instanceof Date
-        ? user.lastLoginAt
-        : user.lastLoginAt.toDate?.() || new Date()
+      ? (user.lastLoginAt instanceof Date ? user.lastLoginAt : new Date()).toISOString()
       : null,
   }
 

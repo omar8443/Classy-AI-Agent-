@@ -14,14 +14,14 @@ import { ArrowLeft } from "lucide-react"
 
 // Client-safe user type with serialized dates
 type SerializedUser = Omit<User, "createdAt" | "updatedAt" | "lastLoginAt"> & {
-  createdAt: Date
-  updatedAt: Date
-  lastLoginAt: Date | null
+  createdAt: string
+  updatedAt: string
+  lastLoginAt: string | null
 }
 
 interface UserDetailClientProps {
   user: SerializedUser
-  lastLogin: Date | null
+  lastLogin: string | null
 }
 
 export function UserDetailClient({ user, lastLogin }: UserDetailClientProps) {
@@ -90,18 +90,13 @@ export function UserDetailClient({ user, lastLogin }: UserDetailClientProps) {
                   <div>
                     <div className="text-sm text-muted-foreground">Last Login</div>
                     <div className="font-medium">
-                      {lastLogin ? formatDistanceToNow(lastLogin, { addSuffix: true }) : "Never"}
+                      {lastLogin ? formatDistanceToNow(new Date(lastLogin), { addSuffix: true }) : "Never"}
                     </div>
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Created</div>
                     <div className="font-medium">
-                      {formatDistanceToNow(
-                        user.createdAt instanceof Date
-                          ? user.createdAt
-                          : user.createdAt?.toDate?.() || new Date(),
-                        { addSuffix: true }
-                      )}
+                      {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
                     </div>
                   </div>
                 </CardContent>

@@ -9,14 +9,14 @@ import { Button } from "@/components/ui/button"
 import { Plus, Calendar, CheckCircle, DollarSign } from "lucide-react"
 
 type SerializedReservation = Omit<Reservation, "createdAt" | "updatedAt" | "travelDetails" | "documents" | "history"> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
   travelDetails: Omit<Reservation["travelDetails"], "departureDate" | "returnDate"> & {
-    departureDate: Date
-    returnDate: Date
+    departureDate: string
+    returnDate: string
   }
-  documents: Array<Omit<Reservation["documents"][0], "uploadedAt"> & { uploadedAt: Date }>
-  history: Array<Omit<Reservation["history"][0], "timestamp"> & { timestamp: Date }>
+  documents: Array<Omit<Reservation["documents"][0], "uploadedAt"> & { uploadedAt: string }>
+  history: Array<Omit<Reservation["history"][0], "timestamp"> & { timestamp: string }>
 }
 
 interface ReservationsPageClientProps {

@@ -7,11 +7,11 @@ export const revalidate = 0
 export default async function LeadsPage() {
   const leads = await getLeads()
 
-  // Serialize Firestore Timestamps to plain Date objects
+  // Serialize dates to ISO strings for client components
   const serializedLeads = leads.map((lead) => ({
     ...lead,
-    createdAt: lead.createdAt instanceof Date ? lead.createdAt : lead.createdAt?.toDate?.() || new Date(),
-    updatedAt: lead.updatedAt instanceof Date ? lead.updatedAt : lead.updatedAt?.toDate?.() || new Date(),
+    createdAt: (lead.createdAt instanceof Date ? lead.createdAt : new Date()).toISOString(),
+    updatedAt: (lead.updatedAt instanceof Date ? lead.updatedAt : new Date()).toISOString(),
   }))
 
   return <LeadsPageClient leads={serializedLeads} />

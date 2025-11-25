@@ -4,7 +4,7 @@ import { ReservationHistoryEntry } from "@/types/reservation"
 import { formatDistanceToNow } from "date-fns"
 
 type SerializedHistoryEntry = Omit<ReservationHistoryEntry, "timestamp"> & {
-  timestamp: Date
+  timestamp: string
 }
 
 interface ReservationTimelineProps {
@@ -30,7 +30,7 @@ export function ReservationTimeline({ history }: ReservationTimelineProps) {
               <p className="text-xs text-muted-foreground mt-1">{entry.details}</p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              {formatDistanceToNow(entry.timestamp, { addSuffix: true })}
+              {formatDistanceToNow(new Date(entry.timestamp), { addSuffix: true })}
             </p>
           </div>
         </div>

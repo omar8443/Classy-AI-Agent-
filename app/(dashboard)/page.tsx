@@ -1,5 +1,4 @@
 import { formatDistanceToNow } from "date-fns"
-import { Phone, TrendingUp, Users, Clock } from "lucide-react"
 
 import { getCalls } from "@/lib/firestore/calls"
 import { getLeads } from "@/lib/firestore/leads"
@@ -11,18 +10,18 @@ export const revalidate = 0
 export default async function DashboardPage() {
   const [leads, calls] = await Promise.all([getLeads(), getCalls(10)])
   
-  // Serialize dates
+  // Serialize dates to ISO strings for client components
   const serializedLeads = leads.map((lead) => ({
     ...lead,
-    createdAt: lead.createdAt instanceof Date ? lead.createdAt : lead.createdAt?.toDate?.() || new Date(),
-    updatedAt: lead.updatedAt instanceof Date ? lead.updatedAt : lead.updatedAt?.toDate?.() || new Date(),
+    createdAt: (lead.createdAt instanceof Date ? lead.createdAt : new Date()).toISOString(),
+    updatedAt: (lead.updatedAt instanceof Date ? lead.updatedAt : new Date()).toISOString(),
   }))
 
   const serializedCalls = calls.map((call) => ({
     ...call,
-    createdAt: call.createdAt instanceof Date ? call.createdAt : call.createdAt?.toDate?.() || new Date(),
+    createdAt: (call.createdAt instanceof Date ? call.createdAt : new Date()).toISOString(),
     endedAt: call.endedAt 
-      ? (call.endedAt instanceof Date ? call.endedAt : call.endedAt?.toDate?.() || new Date()) 
+      ? (call.endedAt instanceof Date ? call.endedAt : new Date()).toISOString()
       : null,
   }))
 
@@ -43,19 +42,19 @@ export default async function DashboardPage() {
       title: "Total Leads",
       value: totalLeads.toString(),
       description: `${newLeadsThisWeek} new this week`,
-      icon: Users,
+      icon: "users",
     },
     {
       title: "Total Calls",
       value: totalCalls.toString(),
       description: "All time",
-      icon: Phone,
+      icon: "phone",
     },
     {
       title: "Conversion Rate",
       value: `${conversionRate}%`,
       description: `${bookedLeads} booked`,
-      icon: TrendingUp,
+      icon: "trending-up",
     },
     {
       title: "Recent Activity",
@@ -64,7 +63,7 @@ export default async function DashboardPage() {
           ? formatDistanceToNow(activeCalls[0].createdAt, { addSuffix: true })
           : "No calls",
       description: "Last call",
-      icon: Clock,
+      icon: "clock",
     },
   ]
 

@@ -12,19 +12,19 @@ import Link from "next/link"
 import { ArrowLeft, User, Calendar, Building2 } from "lucide-react"
 
 type SerializedReservation = Omit<Reservation, "createdAt" | "updatedAt" | "travelDetails" | "documents" | "history"> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
   travelDetails: Omit<Reservation["travelDetails"], "departureDate" | "returnDate"> & {
-    departureDate: Date
-    returnDate: Date
+    departureDate: string
+    returnDate: string
   }
-  documents: Array<Omit<Reservation["documents"][0], "uploadedAt"> & { uploadedAt: Date }>
-  history: Array<Omit<Reservation["history"][0], "timestamp"> & { timestamp: Date }>
+  documents: Array<Omit<Reservation["documents"][0], "uploadedAt"> & { uploadedAt: string }>
+  history: Array<Omit<Reservation["history"][0], "timestamp"> & { timestamp: string }>
 }
 
 type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 } | null
 
 interface ReservationDetailClientProps {
@@ -105,13 +105,13 @@ export function ReservationDetailClient({ reservation, lead }: ReservationDetail
                   <div>
                     <div className="text-sm text-muted-foreground">Departure</div>
                     <div className="font-medium">
-                      {format(reservation.travelDetails.departureDate, "EEEE, MMMM d, yyyy")}
+                      {format(new Date(reservation.travelDetails.departureDate), "EEEE, MMMM d, yyyy")}
                     </div>
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Return</div>
                     <div className="font-medium">
-                      {format(reservation.travelDetails.returnDate, "EEEE, MMMM d, yyyy")}
+                      {format(new Date(reservation.travelDetails.returnDate), "EEEE, MMMM d, yyyy")}
                     </div>
                   </div>
                 </div>

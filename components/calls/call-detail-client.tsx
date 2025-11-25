@@ -12,13 +12,13 @@ import { ArrowLeft, User } from "lucide-react"
 
 // Serialized types for client components
 export type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
-  createdAt: Date
-  endedAt: Date | null
+  createdAt: string
+  endedAt: string | null
 }
 
 export type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 } | null
 
 interface CallDetailClientProps {
@@ -41,7 +41,7 @@ export function CallDetailClient({ call, lead, formattedTranscript }: CallDetail
           <div>
             <h1 className="text-3xl font-bold">Call Details</h1>
             <p className="text-muted-foreground mt-2">
-              {formatDistanceToNow(call.createdAt, { addSuffix: true })}
+              {formatDistanceToNow(new Date(call.createdAt), { addSuffix: true })}
             </p>
           </div>
         </div>

@@ -10,8 +10,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { Call } from "@/types/calls"
 
 type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
-  createdAt: Date
-  endedAt: Date | null
+  createdAt: string
+  endedAt: string | null
 }
 
 interface CallsTableProps {
@@ -122,7 +122,7 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
                     onClick={() => router.push(`/calls/${call.id}`)}
                     className="cursor-pointer border-b transition-colors hover:bg-muted/50"
                   >
-                    <td className="p-4 text-muted-foreground">{formatDistanceToNow(call.createdAt, { addSuffix: true })}</td>
+                    <td className="p-4 text-muted-foreground">{formatDistanceToNow(new Date(call.createdAt), { addSuffix: true })}</td>
                     <td className="p-4 font-medium">{call.callerName || "Unknown"}</td>
                     <td className="p-4 text-muted-foreground">{call.callerPhoneNumber}</td>
                     <td className="p-4 text-muted-foreground">

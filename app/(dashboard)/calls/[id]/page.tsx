@@ -16,17 +16,17 @@ export default async function CallDetailPage({
 
   const lead = call.leadId ? await getLeadById(call.leadId) : null
 
-  // Serialize dates
+  // Serialize dates to ISO strings for client components
   const serializedCall = {
     ...call,
-    createdAt: call.createdAt instanceof Date ? call.createdAt : call.createdAt?.toDate?.() || new Date(),
-    endedAt: call.endedAt ? (call.endedAt instanceof Date ? call.endedAt : call.endedAt?.toDate?.() || new Date()) : null,
+    createdAt: (call.createdAt instanceof Date ? call.createdAt : new Date()).toISOString(),
+    endedAt: call.endedAt ? (call.endedAt instanceof Date ? call.endedAt : new Date()).toISOString() : null,
   }
 
   const serializedLead = lead ? {
     ...lead,
-    createdAt: lead.createdAt instanceof Date ? lead.createdAt : lead.createdAt?.toDate?.() || new Date(),
-    updatedAt: lead.updatedAt instanceof Date ? lead.updatedAt : lead.updatedAt?.toDate?.() || new Date(),
+    createdAt: (lead.createdAt instanceof Date ? lead.createdAt : new Date()).toISOString(),
+    updatedAt: (lead.updatedAt instanceof Date ? lead.updatedAt : new Date()).toISOString(),
   } : null
 
   const formattedTranscript = call.transcript

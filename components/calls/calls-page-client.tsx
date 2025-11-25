@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageWrapper } from "@/components/motion/page-wrapper"
 
 type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
-  createdAt: Date
-  endedAt: Date | null
+  createdAt: string
+  endedAt: string | null
 }
 
 interface CallsPageClientProps {

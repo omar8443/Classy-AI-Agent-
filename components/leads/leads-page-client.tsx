@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageWrapper } from "@/components/motion/page-wrapper"
 
 type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 interface LeadsPageClientProps {

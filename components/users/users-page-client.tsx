@@ -11,9 +11,9 @@ import { UserPlus } from "lucide-react"
 
 // Client-safe user type with serialized dates
 type SerializedUser = Omit<User, "createdAt" | "updatedAt" | "lastLoginAt"> & {
-  createdAt: Date
-  updatedAt: Date
-  lastLoginAt: Date | null
+  createdAt: string
+  updatedAt: string
+  lastLoginAt: string | null
 }
 
 interface UsersPageClientProps {

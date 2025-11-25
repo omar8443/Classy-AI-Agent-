@@ -5,8 +5,8 @@ import { Call } from "@/types/calls"
 import { formatDistanceToNow } from "date-fns"
 
 type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
-  createdAt: Date
-  endedAt: Date | null
+  createdAt: string
+  endedAt: string | null
 }
 
 interface CallsListProps {
@@ -32,7 +32,7 @@ export function CallsList({ calls }: CallsListProps) {
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-3">
                   <span className="font-medium">
-                    {formatDistanceToNow(createdAt, { addSuffix: true })}
+                    {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">

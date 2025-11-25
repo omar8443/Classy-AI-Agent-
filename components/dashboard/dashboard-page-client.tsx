@@ -9,13 +9,13 @@ import Link from "next/link"
 import { Phone, TrendingUp, Users, Clock } from "lucide-react"
 
 type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
-  createdAt: Date
-  endedAt: Date | null
+  createdAt: string
+  endedAt: string | null
 }
 
 type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 interface DashboardPageClientProps {
@@ -25,8 +25,15 @@ interface DashboardPageClientProps {
     title: string
     value: string
     description: string
-    icon: any
+    icon: string
   }>
+}
+
+const iconMap = {
+  users: Users,
+  phone: Phone,
+  "trending-up": TrendingUp,
+  clock: Clock,
 }
 
 function formatPhoneNumber(phone: string): string {
@@ -54,7 +61,7 @@ export function DashboardPageClient({ leads, activeCalls, stats }: DashboardPage
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => {
-            const Icon = stat.icon
+            const Icon = iconMap[stat.icon as keyof typeof iconMap]
             return (
               <Card key={stat.title}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -100,7 +107,7 @@ export function DashboardPageClient({ leads, activeCalls, stats }: DashboardPage
                           </div>
                           <p className="text-sm text-muted-foreground line-clamp-2">{preview}</p>
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>{format(call.createdAt, "MMM d, yyyy 'at' h:mm a")}</span>
+                            <span>{format(new Date(call.createdAt), "MMM d, yyyy 'at' h:mm a")}</span>
                           </div>
                         </div>
                       </div>

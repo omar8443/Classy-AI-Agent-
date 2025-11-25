@@ -7,12 +7,12 @@ export const revalidate = 0
 export default async function CallsPage() {
   const calls = await getCalls()
 
-  // Serialize Firestore Timestamps to plain Date objects
+  // Serialize dates to ISO strings for client components
   const serializedCalls = calls.map((call) => ({
     ...call,
-    createdAt: call.createdAt instanceof Date ? call.createdAt : call.createdAt?.toDate?.() || new Date(),
+    createdAt: (call.createdAt instanceof Date ? call.createdAt : new Date()).toISOString(),
     endedAt: call.endedAt 
-      ? (call.endedAt instanceof Date ? call.endedAt : call.endedAt?.toDate?.() || new Date()) 
+      ? (call.endedAt instanceof Date ? call.endedAt : new Date()).toISOString()
       : null,
   }))
 
