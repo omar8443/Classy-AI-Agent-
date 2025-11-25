@@ -9,8 +9,13 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { Call } from "@/types/calls"
 
+type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
+  createdAt: Date
+  endedAt: Date | null
+}
+
 interface CallsTableProps {
-  calls: Call[]
+  calls: SerializedCall[]
 }
 
 export function CallsTable({ calls: initialCalls }: CallsTableProps) {
@@ -110,7 +115,6 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
             </thead>
             <tbody>
               {filteredCalls.map((call) => {
-                const createdAt = call.createdAt instanceof Date ? call.createdAt : (call.createdAt?.toDate?.() || new Date())
                 const summary = call.summary || (call.transcript ? `${call.transcript.slice(0, 120)}...` : "")
                 return (
                   <tr
@@ -118,7 +122,7 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
                     onClick={() => router.push(`/calls/${call.id}`)}
                     className="cursor-pointer border-b transition-colors hover:bg-muted/50"
                   >
-                    <td className="p-4 text-muted-foreground">{formatDistanceToNow(createdAt, { addSuffix: true })}</td>
+                    <td className="p-4 text-muted-foreground">{formatDistanceToNow(call.createdAt, { addSuffix: true })}</td>
                     <td className="p-4 font-medium">{call.callerName || "Unknown"}</td>
                     <td className="p-4 text-muted-foreground">{call.callerPhoneNumber}</td>
                     <td className="p-4 text-muted-foreground">
