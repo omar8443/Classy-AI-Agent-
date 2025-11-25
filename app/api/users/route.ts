@@ -3,11 +3,31 @@ import { getUsers } from "@/lib/firestore/users"
 
 /**
  * Get all users - useful for assigning calls
+ * Supports filtering by role via query param: ?role=agent
  */
 export async function GET(request: NextRequest) {
   try {
-    const users = await getUsers()
-    return NextResponse.json({ ok: true, users })
+    const { searchParams } = new URL(request.url)
+    const roleFilter = searchParams.get("role")
+
+    let users = await getUsers()
+
+    // Filter by role if specified
+    if (roleFilter) {
+      users = users.filter((user) => user.role === roleFilter)
+    }
+
+    // Return simplified user data for dropdowns
+    const simplifiedUsers = users
+      .filter((u) => u.status === "active")
+      .map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+      }))
+
+    return NextResponse.json(simplifiedUsers)
   } catch (error) {
     console.error("Error fetching users:", error)
     return NextResponse.json(
