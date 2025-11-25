@@ -4,8 +4,13 @@ import Link from "next/link"
 import { Call } from "@/types/calls"
 import { formatDistanceToNow } from "date-fns"
 
+type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
+  createdAt: Date
+  endedAt: Date | null
+}
+
 interface CallsListProps {
-  calls: Call[]
+  calls: SerializedCall[]
 }
 
 export function CallsList({ calls }: CallsListProps) {
@@ -16,7 +21,7 @@ export function CallsList({ calls }: CallsListProps) {
   return (
     <div className="space-y-4">
       {calls.map((call) => {
-        const createdAt = call.createdAt instanceof Date ? call.createdAt : (call.createdAt?.toDate?.() || new Date())
+        const createdAt = call.createdAt
         return (
           <Link
             key={call.id}

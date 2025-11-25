@@ -10,8 +10,13 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 
+type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
+  createdAt: Date
+  updatedAt: Date
+}
+
 interface LeadDetailFormProps {
-  lead: Lead
+  lead: SerializedLead
 }
 
 export function LeadDetailForm({ lead }: LeadDetailFormProps) {
