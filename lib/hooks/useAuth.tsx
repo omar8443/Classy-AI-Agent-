@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean
   error: string | null
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, name: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -47,9 +47,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password)
   }
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, name: string) => {
     const { auth } = getFirebaseClient()
-    await createUserWithEmailAndPassword(auth, email, password)
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+    
+    // Create user document in Firestore
+    try {
+      await fetch("/api/users/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: userCredential.user.uid,
+          email: userCredential.user.email,
+          name,
+          role: "agent", // Default role, admin can change this later
+        }),
+      })
+    } catch (error) {
+      console.error("Error creating user document:", error)
+      // Don't fail the signup if user document creation fails
+      // The user can still login and we can create it later
+    }
   }
 
   const signOut = async () => {

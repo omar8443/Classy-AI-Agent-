@@ -22,6 +22,10 @@ export interface Call {
   durationSeconds: number | null
   audioUrl: string | null
   labels: string[]
+  assignedTo: string | null // User ID of assigned agent
+  assignedToName: string | null // Name of assigned agent
+  notes: string | null // Admin/agent notes about the call
+  status: "pending" | "in_progress" | "completed" | "follow_up" | null
 }
 
 export const CallSchema = z.object({
@@ -37,5 +41,9 @@ export const CallSchema = z.object({
   durationSeconds: z.number().int().positive().nullable(),
   audioUrl: z.string().url().nullable().or(z.literal("")),
   labels: z.array(z.string()).default([]),
+  assignedTo: z.string().nullable().optional(),
+  assignedToName: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  status: z.enum(["pending", "in_progress", "completed", "follow_up"]).nullable().optional(),
 })
 
