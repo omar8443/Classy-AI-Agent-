@@ -143,7 +143,14 @@ export function UsersTable({ users: initialUsers }: UsersTableProps) {
             </thead>
             <tbody>
               {filteredUsers.map((user) => {
-                const lastLogin = user.lastLoginAt ? new Date(user.lastLoginAt) : null
+                // Safely parse lastLoginAt - handle invalid dates
+                let lastLogin: Date | null = null
+                if (user.lastLoginAt) {
+                  const parsed = new Date(user.lastLoginAt)
+                  if (!isNaN(parsed.getTime())) {
+                    lastLogin = parsed
+                  }
+                }
 
                 return (
                   <tr
