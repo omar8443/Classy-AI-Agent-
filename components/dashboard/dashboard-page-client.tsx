@@ -219,13 +219,17 @@ function BoardingPassCard({
   
   const isAssigned = !!call.assignedTo
   
+  // Debug: log the summary and detected destination
+  console.log("Call summary:", call.summary?.substring(0, 100))
+  console.log("Detected destination:", destination)
+  
   return (
     <Link href={`/calls/${call.id}`} className="block group">
-      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all hover:shadow-lg bg-white dark:bg-card ${
+      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all hover:shadow-lg ${
         isAssigned 
           ? "border-green-500/30 hover:border-green-500/50" 
           : "border-orange-500/30 hover:border-orange-500/50"
-      }`}>
+      }`} style={{ backgroundColor: "white" }}>
         {/* Ticket perforation effect */}
         <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${
           isAssigned ? "from-green-500/20 via-green-500 to-green-500/20" : "from-orange-500/20 via-orange-500 to-orange-500/20"
