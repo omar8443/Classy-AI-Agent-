@@ -76,8 +76,11 @@ function BoardingPassCard({
   
   // Extract destination from summary or transcript with comprehensive list
   const extractDestination = (): { name: string; code: string } | null => {
-    const text = (call.summary || "") + " " + (call.transcript || "")
-    const textLower = text.toLowerCase()
+    // Prioritize summary, then fall back to transcript
+    const summaryText = call.summary || ""
+    const transcriptText = call.transcript || ""
+    const text = summaryText + " " + transcriptText
+    const textLower = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents for better matching
     
     // Comprehensive list of destinations with their airport codes
     const destinations: Array<{ names: string[]; code: string; display: string }> = [
@@ -165,7 +168,9 @@ function BoardingPassCard({
     
     for (const dest of destinations) {
       for (const name of dest.names) {
-        if (textLower.includes(name)) {
+        // Normalize the search term as well
+        const normalizedName = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        if (textLower.includes(normalizedName)) {
           return { name: dest.display, code: dest.code }
         }
       }
@@ -216,10 +221,10 @@ function BoardingPassCard({
   
   return (
     <Link href={`/calls/${call.id}`} className="block group">
-      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all hover:shadow-lg ${
+      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all hover:shadow-lg bg-white dark:bg-card ${
         isAssigned 
-          ? "border-green-500/30 bg-gradient-to-r from-card to-green-500/5 hover:border-green-500/50" 
-          : "border-orange-500/30 bg-gradient-to-r from-card to-orange-500/5 hover:border-orange-500/50"
+          ? "border-green-500/30 hover:border-green-500/50" 
+          : "border-orange-500/30 hover:border-orange-500/50"
       }`}>
         {/* Ticket perforation effect */}
         <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${
