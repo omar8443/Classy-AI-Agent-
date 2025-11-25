@@ -32,6 +32,16 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       hasChanges = true
     }
 
+    if (body.assignedTo !== undefined) {
+      updates.assignedTo = body.assignedTo || null
+      hasChanges = true
+    }
+
+    if (body.assignedToName !== undefined) {
+      updates.assignedToName = body.assignedToName || null
+      hasChanges = true
+    }
+
     if (!hasChanges) {
       return NextResponse.json({ ok: false, error: "No valid updates provided" }, { status: 400 })
     }
