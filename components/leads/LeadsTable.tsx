@@ -1,27 +1,34 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { Lead } from "@/types/leads"
-import { Badge } from "@/components/ui/badge"
+import { useRouter } from "next/navigation"
+import { formatDistanceToNow } from "date-fns"
+
+import { Lead, LeadStatus } from "@/types/leads"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { formatDistanceToNow } from "date-fns"
-import { statusColors } from "@/lib/constants"
 
 interface LeadsTableProps {
   leads: Lead[]
 }
 
+const statusOptions: LeadStatus[] = ["new", "in_progress", "booked", "closed", "lost"]
+
 export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [statusValues, setStatusValues] = useState<Record<string, LeadStatus>>(() =>
+    Object.fromEntries(initialLeads.map((lead) => [lead.id, lead.status]))
+  )
 
   const filteredLeads = initialLeads.filter((lead) => {
+    const normalizedQuery = searchQuery.toLowerCase()
     const matchesSearch =
       searchQuery === "" ||
-      lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lead.phoneNumber.includes(searchQuery)
+      lead.name?.toLowerCase().includes(normalizedQuery) ||
+      lead.phoneNumber.includes(searchQuery) ||
+      lead.email?.toLowerCase().includes(normalizedQuery)
     
     const matchesStatus = statusFilter === "all" || lead.status === statusFilter
 
@@ -42,7 +49,7 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all">All</SelectItem>
             <SelectItem value="new">New</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="booked">Booked</SelectItem>
@@ -53,18 +60,18 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
       </div>
 
       {filteredLeads.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
+        <div className="py-8 text-center text-muted-foreground">
           {initialLeads.length === 0 ? "No leads yet." : "No leads match your filters."}
         </div>
       ) : (
         <div className="rounded-lg border">
-          <table className="w-full">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/50">
+              <tr className="border-b bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="h-12 px-4 text-left align-middle font-medium">Name</th>
                 <th className="h-12 px-4 text-left align-middle font-medium">Phone</th>
+                <th className="h-12 px-4 text-left align-middle font-medium">Email</th>
                 <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Source</th>
                 <th className="h-12 px-4 text-left align-middle font-medium">Last Call</th>
                 <th className="h-12 px-4 text-left align-middle font-medium">Total Calls</th>
               </tr>
@@ -75,24 +82,48 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
                 return (
                   <tr
                     key={lead.id}
-                    className="border-b transition-colors hover:bg-muted/50 cursor-pointer"
+                    onClick={() => router.push(`/leads/${lead.id}`)}
+                    className="cursor-pointer border-b transition-colors hover:bg-muted/50"
                   >
-                    <td className="p-4">
-                      <Link href={`/leads/${lead.id}`} className="font-medium hover:underline">
-                        {lead.name || "Unknown"}
-                      </Link>
-                    </td>
+                    <td className="p-4 font-medium">{lead.name || "Unknown"}</td>
                     <td className="p-4 text-muted-foreground">{lead.phoneNumber}</td>
-                    <td className="p-4">
-                      <Badge className={statusColors[lead.status] || statusColors.new}>
-                        {lead.status.replace("_", " ")}
-                      </Badge>
-                    </td>
-                    <td className="p-4 text-muted-foreground">{lead.source}</td>
                     <td className="p-4 text-muted-foreground">
-                      {lead.lastCallId
-                        ? formatDistanceToNow(updatedAt, { addSuffix: true })
-                        : "Never"}
+                      {lead.email ? (
+                        <a
+                          href={`mailto:${lead.email}`}
+                          className="text-foreground underline decoration-dotted underline-offset-4"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {lead.email}
+                        </a>
+                      ) : (
+                        "Not provided"
+                      )}
+                    </td>
+                    <td className="p-4" onClick={(event) => event.stopPropagation()}>
+                      <Select
+                        value={statusValues[lead.id] || lead.status}
+                        onValueChange={(value) =>
+                          setStatusValues((prev) => ({
+                            ...prev,
+                            [lead.id]: value as LeadStatus,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statusOptions.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status.replace("_", " ")}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="p-4 text-muted-foreground">
+                      {lead.lastCallId ? formatDistanceToNow(updatedAt, { addSuffix: true }) : "Never"}
                     </td>
                     <td className="p-4 text-muted-foreground">{lead.totalCalls}</td>
                   </tr>

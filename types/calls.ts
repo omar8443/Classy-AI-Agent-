@@ -1,10 +1,8 @@
 import { z } from "zod"
 
 export const CallDirectionSchema = z.enum(["inbound", "outbound"]).nullable()
-export const CallSentimentSchema = z.enum(["positive", "neutral", "negative"]).nullable()
 
 export type CallDirection = z.infer<typeof CallDirectionSchema>
-export type CallSentiment = z.infer<typeof CallSentimentSchema>
 
 export interface Call {
   id: string
@@ -15,10 +13,9 @@ export interface Call {
   callerPhoneNumber: string
   callerName: string | null
   provider: string
-  rawPayload: Record<string, unknown>
+  rawPayload: Record<string, unknown> | string
   transcript: string
   summary: string
-  sentiment: CallSentiment
   durationSeconds: number | null
   audioUrl: string | null
   labels: string[]
@@ -26,6 +23,7 @@ export interface Call {
   assignedToName: string | null // Name of assigned agent
   notes: string | null // Admin/agent notes about the call
   status: "pending" | "in_progress" | "completed" | "follow_up" | null
+  archived?: boolean
 }
 
 export const CallSchema = z.object({
@@ -34,10 +32,9 @@ export const CallSchema = z.object({
   callerPhoneNumber: z.string().min(1),
   callerName: z.string().nullable(),
   provider: z.string().default("elevenlabs"),
-  rawPayload: z.record(z.unknown()),
+  rawPayload: z.union([z.record(z.unknown()), z.string()]),
   transcript: z.string().default(""),
   summary: z.string().default(""),
-  sentiment: CallSentimentSchema,
   durationSeconds: z.number().int().positive().nullable(),
   audioUrl: z.string().url().nullable().or(z.literal("")),
   labels: z.array(z.string()).default([]),
@@ -45,5 +42,6 @@ export const CallSchema = z.object({
   assignedToName: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   status: z.enum(["pending", "in_progress", "completed", "follow_up"]).nullable().optional(),
+  archived: z.boolean().default(false).optional(),
 })
 

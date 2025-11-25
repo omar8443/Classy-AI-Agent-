@@ -18,6 +18,7 @@ export async function getCalls(limit?: number): Promise<Call[]> {
       ...data,
       createdAt: data.createdAt?.toDate() || new Date(),
       endedAt: data.endedAt?.toDate() || null,
+      archived: data.archived ?? false,
     }
   }) as Call[]
 }
@@ -37,6 +38,7 @@ export async function getCallsByLeadId(leadId: string): Promise<Call[]> {
       ...data,
       createdAt: data.createdAt?.toDate() || new Date(),
       endedAt: data.endedAt?.toDate() || null,
+      archived: data.archived ?? false,
     }
   }) as Call[]
 }
@@ -59,6 +61,7 @@ export async function getCallById(id: string): Promise<Call | null> {
     ...data,
     createdAt: data.createdAt?.toDate() || new Date(),
     endedAt: data.endedAt?.toDate() || null,
+    archived: data.archived ?? false,
   } as Call
 }
 

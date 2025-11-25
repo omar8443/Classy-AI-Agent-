@@ -1,6 +1,6 @@
-import { getLeads } from "@/lib/firestore/leads"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LeadsTable } from "@/components/leads/LeadsTable"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getLeads } from "@/lib/firestore/leads"
 
 export default async function LeadsPage() {
   const leads = await getLeads()
@@ -9,7 +9,7 @@ export default async function LeadsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Leads</h1>
-        <p className="text-muted-foreground mt-2">Manage your leads and track their progress</p>
+        <p className="mt-2 text-sm text-muted-foreground">Manage your leads and track their progress</p>
       </div>
 
       <Card>

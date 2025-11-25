@@ -1,52 +1,85 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { Call } from "@/types/calls"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useToast } from "@/components/ui/use-toast"
+import { Call } from "@/types/calls"
 
 interface CallsTableProps {
   calls: Call[]
 }
 
-function formatDuration(seconds: number | null): string {
-  if (!seconds) return "N/A"
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins}:${secs.toString().padStart(2, "0")}`
-}
-
-function getSentimentColor(sentiment: string | null): string {
-  switch (sentiment) {
-    case "positive":
-      return "bg-green-100 text-green-800 border-green-200"
-    case "negative":
-      return "bg-red-100 text-red-800 border-red-200"
-    case "neutral":
-      return "bg-gray-100 text-gray-800 border-gray-200"
-    default:
-      return "bg-gray-100 text-gray-800 border-gray-200"
-  }
-}
-
 export function CallsTable({ calls: initialCalls }: CallsTableProps) {
+  const router = useRouter()
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
-  const [sentimentFilter, setSentimentFilter] = useState<string>("all")
+  const [calls, setCalls] = useState(initialCalls)
+  const [archivingId, setArchivingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const filteredCalls = initialCalls.filter((call) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      call.callerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      call.callerPhoneNumber.includes(searchQuery) ||
-      call.transcript.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesSentiment = sentimentFilter === "all" || call.sentiment === sentimentFilter
+  const filteredCalls = calls
+    .filter((call) => !call.archived)
+    .filter((call) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        call.callerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        call.callerPhoneNumber.includes(searchQuery) ||
+        call.transcript.toLowerCase().includes(searchQuery.toLowerCase())
 
-    return matchesSearch && matchesSentiment
-  })
+      return matchesSearch
+    })
+
+  const handleArchive = async (id: string) => {
+    setArchivingId(id)
+    try {
+      const response = await fetch(`/api/calls/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: true }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to archive call")
+      }
+
+      setCalls((prev) => prev.map((call) => (call.id === id ? { ...call, archived: true } : call)))
+      toast({ title: "Call archived", description: "The call has been moved to your archive." })
+    } catch (error) {
+      console.error(error)
+      toast({ title: "Archive failed", description: "Please try again.", variant: "destructive" })
+    } finally {
+      setArchivingId(null)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this call permanently?")) {
+      return
+    }
+
+    setDeletingId(id)
+    try {
+      const response = await fetch(`/api/calls/${id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to delete call")
+      }
+
+      setCalls((prev) => prev.filter((call) => call.id !== id))
+      toast({ title: "Call deleted", description: "The call record has been removed." })
+    } catch (error) {
+      console.error(error)
+      toast({ title: "Delete failed", description: "Please try again.", variant: "destructive" })
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -57,63 +90,49 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-sm"
         />
-        <Select value={sentimentFilter} onValueChange={setSentimentFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by sentiment" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Sentiments</SelectItem>
-            <SelectItem value="positive">Positive</SelectItem>
-            <SelectItem value="neutral">Neutral</SelectItem>
-            <SelectItem value="negative">Negative</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {filteredCalls.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          {initialCalls.length === 0 ? "No calls yet." : "No calls match your filters."}
+        <div className="py-8 text-center text-muted-foreground">
+          {calls.length === 0 ? "No calls yet." : "No calls match your filters."}
         </div>
       ) : (
         <div className="rounded-lg border">
-          <table className="w-full">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/50">
+              <tr className="border-b bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="h-12 px-4 text-left align-middle font-medium">Date/Time</th>
                 <th className="h-12 px-4 text-left align-middle font-medium">Caller</th>
                 <th className="h-12 px-4 text-left align-middle font-medium">Phone</th>
                 <th className="h-12 px-4 text-left align-middle font-medium">Summary</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Sentiment</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Duration</th>
+                <th className="h-12 px-4 text-left align-middle font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredCalls.map((call) => {
                 const createdAt = call.createdAt instanceof Date ? call.createdAt : (call.createdAt?.toDate?.() || new Date())
+                const summary = call.summary || (call.transcript ? `${call.transcript.slice(0, 120)}...` : "")
                 return (
                   <tr
                     key={call.id}
-                    className="border-b transition-colors hover:bg-muted/50 cursor-pointer"
+                    onClick={() => router.push(`/calls/${call.id}`)}
+                    className="cursor-pointer border-b transition-colors hover:bg-muted/50"
                   >
-                    <td className="p-4">
-                      <Link href={`/calls/${call.id}`} className="hover:underline">
-                        {formatDistanceToNow(createdAt, { addSuffix: true })}
-                      </Link>
-                    </td>
+                    <td className="p-4 text-muted-foreground">{formatDistanceToNow(createdAt, { addSuffix: true })}</td>
                     <td className="p-4 font-medium">{call.callerName || "Unknown"}</td>
                     <td className="p-4 text-muted-foreground">{call.callerPhoneNumber}</td>
-                    <td className="p-4 text-muted-foreground max-w-md">
-                      <div className="line-clamp-2">
-                        {call.summary || call.transcript.slice(0, 100) + "..."}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <Badge className={getSentimentColor(call.sentiment)}>
-                        {call.sentiment || "N/A"}
-                      </Badge>
-                    </td>
                     <td className="p-4 text-muted-foreground">
-                      {formatDuration(call.durationSeconds)}
+                      <div className="line-clamp-2">{summary}</div>
+                    </td>
+                    <td className="p-4" onClick={(event) => event.stopPropagation()}>
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="sm" variant="outline" disabled={archivingId === call.id} onClick={() => handleArchive(call.id)}>
+                          {archivingId === call.id ? "Archiving…" : "Archive"}
+                        </Button>
+                        <Button size="sm" variant="destructive" disabled={deletingId === call.id} onClick={() => handleDelete(call.id)}>
+                          {deletingId === call.id ? "Deleting…" : "Delete"}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 )

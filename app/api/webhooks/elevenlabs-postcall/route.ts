@@ -9,6 +9,15 @@ import { LeadSchema } from "@/types/leads"
 import { CallSchema } from "@/types/calls"
 import crypto from "crypto"
 
+const stringifyRawPayload = (value: unknown) => {
+  try {
+    return JSON.stringify(value)
+  } catch (error) {
+    console.warn("⚠️ Unable to stringify raw payload, storing fallback message.", error)
+    return JSON.stringify({ error: "Failed to stringify raw webhook payload" })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Get raw body text for HMAC verification
@@ -88,6 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     const rawPayload: ElevenLabsPostCallPayload = validationResult.data
+    const rawPayloadSerialized = stringifyRawPayload(body)
     
     // Extract data from nested ElevenLabs structure
     const eventData = (body as any).data || body
@@ -213,7 +223,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate summary (optional, uses OpenAI if configured)
-    const { summary, sentiment } = await summarizeCall(transcript)
+    const { summary } = await summarizeCall(transcript)
 
     // Calculate duration
     let durationSeconds: number | null = null
@@ -286,10 +296,9 @@ export async function POST(request: NextRequest) {
       callerPhoneNumber: payload.caller_phone_number,
       callerName: payload.caller_name || null,
       provider: "elevenlabs",
-      rawPayload: body,
+      rawPayload: rawPayloadSerialized,
       transcript,
       summary,
-      sentiment,
       durationSeconds,
       audioUrl: payload.audio_url || null,
       labels: [],

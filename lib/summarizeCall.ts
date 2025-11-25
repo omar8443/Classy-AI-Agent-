@@ -1,8 +1,5 @@
-import { CallSentiment } from "@/types/calls"
-
 export interface CallSummary {
   summary: string
-  sentiment: CallSentiment
 }
 
 export async function summarizeCall(transcript: string): Promise<CallSummary> {
@@ -12,7 +9,6 @@ export async function summarizeCall(transcript: string): Promise<CallSummary> {
     // Fallback: use first 500 chars as summary
     return {
       summary: transcript.slice(0, 500) + (transcript.length > 500 ? "..." : ""),
-      sentiment: null,
     }
   }
 
@@ -29,7 +25,7 @@ export async function summarizeCall(transcript: string): Promise<CallSummary> {
           {
             role: "system",
             content:
-              "You are a helpful assistant that summarizes phone calls. Provide a concise 2-3 sentence summary and classify the sentiment as 'positive', 'neutral', or 'negative'. Respond in JSON format: {\"summary\": \"...\", \"sentiment\": \"positive\"|\"neutral\"|\"negative\"}",
+              "You are a helpful assistant that summarizes phone calls. Provide a concise 2-3 sentence summary. Respond in JSON format: {\"summary\": \"...\"}",
           },
           {
             role: "user",
@@ -58,23 +54,18 @@ export async function summarizeCall(transcript: string): Promise<CallSummary> {
       const parsed = JSON.parse(jsonMatch[0])
       return {
         summary: parsed.summary || transcript.slice(0, 500),
-        sentiment: ["positive", "neutral", "negative"].includes(parsed.sentiment)
-          ? (parsed.sentiment as CallSentiment)
-          : null,
       }
     }
 
     // Fallback if JSON parsing fails
     return {
       summary: content.slice(0, 500),
-      sentiment: null,
     }
   } catch (error) {
     console.error("Error summarizing call with OpenAI:", error)
     // Fallback to simple truncation
     return {
       summary: transcript.slice(0, 500) + (transcript.length > 500 ? "..." : ""),
-      sentiment: null,
     }
   }
 }

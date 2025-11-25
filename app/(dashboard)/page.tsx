@@ -1,42 +1,23 @@
-import { getLeads } from "@/lib/firestore/leads"
-import { getCalls } from "@/lib/firestore/calls"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { Phone, Users, TrendingUp, Clock } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import { Phone, TrendingUp, Users, Clock } from "lucide-react"
 
-function formatDuration(seconds: number | null): string {
-  if (!seconds) return "N/A"
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins}:${secs.toString().padStart(2, "0")}`
-}
-
-function getSentimentColor(sentiment: string | null): string {
-  switch (sentiment) {
-    case "positive":
-      return "bg-green-100 text-green-800 border-green-200"
-    case "negative":
-      return "bg-red-100 text-red-800 border-red-200"
-    case "neutral":
-      return "bg-gray-100 text-gray-800 border-gray-200"
-    default:
-      return "bg-gray-100 text-gray-800 border-gray-200"
-  }
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getCalls } from "@/lib/firestore/calls"
+import { getLeads } from "@/lib/firestore/leads"
 
 export default async function DashboardPage() {
   const [leads, calls] = await Promise.all([getLeads(), getCalls(10)])
+  const activeCalls = calls.filter((call) => !call.archived)
 
   const totalLeads = leads.length
   const newLeadsThisWeek = leads.filter((lead) => {
     const weekAgo = new Date()
     weekAgo.setDate(weekAgo.getDate() - 7)
-    const createdAt = lead.createdAt instanceof Date ? lead.createdAt : (lead.createdAt?.toDate?.() || new Date())
-    return createdAt >= weekAgo
+    const createdAt = lead.createdAt instanceof Date ? lead.createdAt : lead.createdAt?.toDate?.()
+    return (createdAt || new Date()) >= weekAgo
   }).length
-  const totalCalls = calls.length
+  const totalCalls = activeCalls.length
   const bookedLeads = leads.filter((lead) => lead.status === "booked").length
   const conversionRate = totalLeads > 0 ? ((bookedLeads / totalLeads) * 100).toFixed(1) : "0"
 
@@ -44,26 +25,34 @@ export default async function DashboardPage() {
     {
       title: "Total Leads",
       value: totalLeads.toString(),
-      icon: Users,
       description: `${newLeadsThisWeek} new this week`,
+      icon: Users,
     },
     {
       title: "Total Calls",
       value: totalCalls.toString(),
-      icon: Phone,
       description: "All time",
+      icon: Phone,
     },
     {
       title: "Conversion Rate",
       value: `${conversionRate}%`,
-      icon: TrendingUp,
       description: `${bookedLeads} booked`,
+      icon: TrendingUp,
     },
     {
       title: "Recent Activity",
-      value: calls.length > 0 ? formatDistanceToNow(calls[0].createdAt instanceof Date ? calls[0].createdAt : (calls[0].createdAt?.toDate?.() || new Date()), { addSuffix: true }) : "No calls",
-      icon: Clock,
+      value:
+        activeCalls.length > 0
+          ? formatDistanceToNow(
+              activeCalls[0].createdAt instanceof Date
+                ? activeCalls[0].createdAt
+                : activeCalls[0].createdAt?.toDate?.() || new Date(),
+              { addSuffix: true }
+            )
+          : "No calls",
       description: "Last call",
+      icon: Clock,
     },
   ]
 
@@ -71,7 +60,7 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Overview of your leads and calls</p>
+        <p className="mt-2 text-muted-foreground">Overview of your leads and calls</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -85,7 +74,7 @@ export default async function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{stat.description}</p>
               </CardContent>
             </Card>
           )
@@ -97,14 +86,16 @@ export default async function DashboardPage() {
           <CardTitle>Recent Calls</CardTitle>
         </CardHeader>
         <CardContent>
-          {calls.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+          {activeCalls.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">
               No calls yet. Calls will appear here once webhooks are received.
             </div>
           ) : (
             <div className="space-y-4">
-              {calls.map((call) => {
-                const createdAt = call.createdAt instanceof Date ? call.createdAt : (call.createdAt?.toDate?.() || new Date())
+              {activeCalls.map((call) => {
+                const createdAt = call.createdAt instanceof Date ? call.createdAt : call.createdAt?.toDate?.()
+                const preview =
+                  call.summary || (call.transcript ? `${call.transcript.slice(0, 100)}...` : "Awaiting transcript")
                 return (
                   <Link
                     key={call.id}
@@ -115,19 +106,11 @@ export default async function DashboardPage() {
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-3">
                           <span className="font-medium">{call.callerName || "Unknown"}</span>
-                          <span className="text-sm text-muted-foreground">{call.callerPhoneNumber}</span>
-                          <Badge className={getSentimentColor(call.sentiment)}>
-                            {call.sentiment || "N/A"}
-                          </Badge>
+                          <span className="text-sm text-muted-foreground">{call.callerPhoneNumber || "No number"}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {call.summary || call.transcript.slice(0, 100) + "..."}
-                        </p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{preview}</p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>{formatDistanceToNow(createdAt, { addSuffix: true })}</span>
-                          {call.durationSeconds && (
-                            <span>Duration: {formatDuration(call.durationSeconds)}</span>
-                          )}
+                          <span>{createdAt ? formatDistanceToNow(createdAt, { addSuffix: true }) : "Just now"}</span>
                         </div>
                       </div>
                     </div>
@@ -141,4 +124,5 @@ export default async function DashboardPage() {
     </div>
   )
 }
+
 
