@@ -72,17 +72,51 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate payload
     const body = JSON.parse(bodyText)
+    
+    // Log the raw payload for debugging
+    console.log("📥 Received ElevenLabs webhook payload:", JSON.stringify(body, null, 2))
+    
     const validationResult = ElevenLabsPostCallPayloadSchema.safeParse(body)
 
     if (!validationResult.success) {
-      console.error("Invalid payload:", validationResult.error)
+      console.error("❌ Invalid payload:", validationResult.error)
+      console.error("📋 Raw body received:", JSON.stringify(body, null, 2))
       return NextResponse.json(
         { ok: false, error: "Invalid payload", details: validationResult.error },
         { status: 400 }
       )
     }
 
-    const payload: ElevenLabsPostCallPayload = validationResult.data
+    const rawPayload: ElevenLabsPostCallPayload = validationResult.data
+    
+    // Normalize field names to handle different formats
+    const payload = {
+      call_id: rawPayload.call_id || rawPayload.callId || rawPayload.id || `call_${Date.now()}`,
+      timestamp: rawPayload.timestamp || rawPayload.created_at || rawPayload.createdAt || Date.now(),
+      caller_phone_number: rawPayload.caller_phone_number || rawPayload.callerPhoneNumber || 
+                          rawPayload.phone_number || rawPayload.phoneNumber || rawPayload.from || "unknown",
+      caller_name: rawPayload.caller_name || rawPayload.callerName || rawPayload.name || null,
+      transcript: rawPayload.transcript,
+      audio_url: rawPayload.audio_url || rawPayload.audioUrl || rawPayload.recording_url || rawPayload.recordingUrl || null,
+      duration: rawPayload.duration || rawPayload.durationSeconds,
+      agent_id: rawPayload.agent_id || rawPayload.agentId,
+      metadata: rawPayload.metadata,
+    }
+    
+    console.log("✅ Normalized payload:", JSON.stringify(payload, null, 2))
+    
+    // Validate we have minimum required data
+    if (!payload.call_id) {
+      console.error("❌ Missing call_id after normalization")
+      return NextResponse.json(
+        { ok: false, error: "Missing required field: call_id" },
+        { status: 400 }
+      )
+    }
+    
+    if (!payload.caller_phone_number || payload.caller_phone_number === "unknown") {
+      console.warn("⚠️ Missing caller phone number, using placeholder")
+    }
 
     // Get Firestore instance
     const { db } = getFirebaseAdmin()
@@ -186,19 +220,26 @@ export async function POST(request: NextRequest) {
       labels: [],
     })
 
+    // Calculate end time based on timestamp and duration
+    let endedAt: Date | null = null
+    if (payload.duration && payload.timestamp) {
+      try {
+        const timestampMs = typeof payload.timestamp === "number"
+          ? payload.timestamp * 1000
+          : new Date(payload.timestamp).getTime()
+        endedAt = new Date(timestampMs + payload.duration * 1000)
+      } catch (error) {
+        console.warn("⚠️ Could not calculate endedAt:", error)
+      }
+    }
+
     await existingCallRef.set({
       ...callData,
       createdAt: new Date(),
-      endedAt: payload.duration
-        ? new Date(
-            typeof payload.timestamp === "number"
-              ? payload.timestamp * 1000
-              : new Date(payload.timestamp).getTime() + payload.duration * 1000
-          )
-        : null,
+      endedAt,
     })
 
-    console.log(`Successfully processed call ${payload.call_id} for lead ${leadId}`)
+    console.log(`✅ Successfully processed call ${payload.call_id} for lead ${leadId}`)
 
     return NextResponse.json({ ok: true })
   } catch (error) {
