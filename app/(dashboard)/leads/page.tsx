@@ -2,6 +2,9 @@ import { LeadsTable } from "@/components/leads/LeadsTable"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getLeads } from "@/lib/firestore/leads"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function LeadsPage() {
   const leads = await getLeads()
 

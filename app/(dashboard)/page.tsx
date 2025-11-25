@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCalls } from "@/lib/firestore/calls"
 import { getLeads } from "@/lib/firestore/leads"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function DashboardPage() {
   const [leads, calls] = await Promise.all([getLeads(), getCalls(10)])
   const activeCalls = calls.filter((call) => !call.archived)

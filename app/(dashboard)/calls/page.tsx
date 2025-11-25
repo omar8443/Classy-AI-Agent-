@@ -2,6 +2,9 @@ import { CallsTable } from "@/components/calls/CallsTable"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCalls } from "@/lib/firestore/calls"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function CallsPage() {
   const calls = await getCalls()
 
