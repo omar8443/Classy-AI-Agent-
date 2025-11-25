@@ -1,12 +1,18 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Call } from "@/types/calls"
 import { Lead } from "@/types/leads"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { PageWrapper } from "@/components/motion/page-wrapper"
+import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { Phone, TrendingUp, Users, Clock, Plane, MapPin, Calendar, User } from "lucide-react"
+import { Phone, TrendingUp, Users, Clock, Plane, User, UserPlus, Check } from "lucide-react"
 
 type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
   createdAt: string
@@ -51,7 +57,21 @@ function formatPhoneNumber(phone: string): string {
 }
 
 // Boarding pass style card for recent calls
-function BoardingPassCard({ call, lead }: { call: SerializedCall; lead?: SerializedLead }) {
+function BoardingPassCard({ 
+  call: initialCall, 
+  lead,
+  onAssign 
+}: { 
+  call: SerializedCall
+  lead?: SerializedLead
+  onAssign: (callId: string, assignedTo: string, assignedToName: string) => void
+}) {
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
+  const [call, setCall] = useState(initialCall)
+  const [isAssigning, setIsAssigning] = useState(false)
+  
   const createdAt = new Date(call.createdAt)
   
   // Extract destination from summary or transcript (simple heuristic)
@@ -69,11 +89,55 @@ function BoardingPassCard({ call, lead }: { call: SerializedCall; lead?: Seriali
   
   const destination = extractDestination()
   
+  const handleAssign = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!user) return
+    
+    setIsAssigning(true)
+    const userName = user.displayName || user.email?.split("@")[0] || "Agent"
+    
+    try {
+      const response = await fetch(`/api/calls/${call.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          assignedTo: user.uid,
+          assignedToName: userName 
+        }),
+      })
+      
+      if (response.ok) {
+        setCall(prev => ({
+          ...prev,
+          assignedTo: user.uid,
+          assignedToName: userName
+        }))
+        onAssign(call.id, user.uid, userName)
+        toast({ title: "Assigned!", description: "Call assigned to you." })
+      }
+    } catch (error) {
+      console.error("Failed to assign:", error)
+      toast({ title: "Error", description: "Failed to assign call.", variant: "destructive" })
+    } finally {
+      setIsAssigning(false)
+    }
+  }
+  
+  const isAssigned = !!call.assignedTo
+  
   return (
     <Link href={`/calls/${call.id}`} className="block group">
-      <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-muted-foreground/20 bg-gradient-to-r from-card to-muted/30 transition-all hover:border-primary/40 hover:shadow-lg">
+      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all hover:shadow-lg ${
+        isAssigned 
+          ? "border-green-500/30 bg-gradient-to-r from-card to-green-500/5 hover:border-green-500/50" 
+          : "border-orange-500/30 bg-gradient-to-r from-card to-orange-500/5 hover:border-orange-500/50"
+      }`}>
         {/* Ticket perforation effect */}
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/20 via-primary to-primary/20" />
+        <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${
+          isAssigned ? "from-green-500/20 via-green-500 to-green-500/20" : "from-orange-500/20 via-orange-500 to-orange-500/20"
+        }`} />
         
         <div className="flex">
           {/* Left section - Main info */}
@@ -121,15 +185,33 @@ function BoardingPassCard({ call, lead }: { call: SerializedCall; lead?: Seriali
             </div>
           </div>
           
-          {/* Right section - Ticket stub */}
+          {/* Right section - Assignment */}
           <div className="w-28 border-l-2 border-dashed border-muted-foreground/20 p-3 flex flex-col items-center justify-center bg-muted/20">
-            <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Call ID</div>
-            <div className="font-mono text-xs font-bold">{call.id.slice(0, 8)}</div>
-            <div className="mt-3">
-              <Calendar className="h-4 w-4 text-muted-foreground mb-1 mx-auto" />
-              <div className="text-xs font-medium">{format(createdAt, "MMM d")}</div>
-              <div className="text-xs text-muted-foreground">{format(createdAt, "h:mm a")}</div>
-            </div>
+            {isAssigned ? (
+              <>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Assigned</div>
+                <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 text-xs">
+                  <Check className="h-3 w-3 mr-1" />
+                  {call.assignedToName?.split(" ")[0] || "Agent"}
+                </Badge>
+              </>
+            ) : (
+              <>
+                <div className="text-xs text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-2 font-medium">
+                  Unassigned
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs border-orange-500/50 text-orange-600 hover:bg-orange-500 hover:text-white dark:text-orange-400"
+                  onClick={handleAssign}
+                  disabled={isAssigning}
+                >
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  {isAssigning ? "..." : "Take"}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -137,9 +219,22 @@ function BoardingPassCard({ call, lead }: { call: SerializedCall; lead?: Seriali
   )
 }
 
-export function DashboardPageClient({ leads, activeCalls, stats }: DashboardPageClientProps) {
+export function DashboardPageClient({ leads, activeCalls: initialCalls, stats }: DashboardPageClientProps) {
+  const [activeCalls, setActiveCalls] = useState(initialCalls)
+  
   // Create a map of leads by phone number for quick lookup
   const leadsByPhone = new Map(leads.map(lead => [lead.phoneNumber, lead]))
+  
+  // Handle assignment update
+  const handleAssign = (callId: string, assignedTo: string, assignedToName: string) => {
+    setActiveCalls(prev => 
+      prev.map(call => 
+        call.id === callId 
+          ? { ...call, assignedTo, assignedToName } 
+          : call
+      )
+    )
+  }
   
   return (
     <PageWrapper>
@@ -217,7 +312,14 @@ export function DashboardPageClient({ leads, activeCalls, stats }: DashboardPage
             <div className="grid gap-4 md:grid-cols-2">
               {activeCalls.slice(0, 6).map((call) => {
                 const lead = leadsByPhone.get(call.callerPhoneNumber)
-                return <BoardingPassCard key={call.id} call={call} lead={lead} />
+                return (
+                  <BoardingPassCard 
+                    key={call.id} 
+                    call={call} 
+                    lead={lead} 
+                    onAssign={handleAssign}
+                  />
+                )
               })}
             </div>
           )}
