@@ -58,36 +58,36 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
   }
 
   return (
-    <div className="space-y-4 p-4 max-h-[600px] overflow-y-auto">
+    <div className="space-y-3 p-4 max-h-[400px] overflow-y-auto">
       {messages.map((message, index) => (
         <div
           key={index}
-          className={`flex gap-3 ${message.role === "agent" ? "justify-start" : "justify-end"}`}
+          className={`flex gap-2 ${message.role === "agent" ? "justify-start" : "justify-end"}`}
         >
           {message.role === "agent" && (
             <div className="flex-shrink-0 mt-1">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Phone className="h-4 w-4 text-primary" />
+              <div className="h-7 w-7 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <Phone className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
               </div>
             </div>
           )}
           
           <div
-            className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+            className={`max-w-[70%] rounded-2xl px-3 py-2 ${
               message.role === "agent"
-                ? "bg-primary/10 text-foreground rounded-tl-sm"
+                ? "bg-gray-100 dark:bg-gray-800 text-foreground rounded-tl-sm"
                 : "bg-blue-500 text-white rounded-tr-sm"
             }`}
           >
-            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+            <p className="text-sm leading-relaxed break-words">
               {message.text}
             </p>
           </div>
 
           {message.role === "user" && (
             <div className="flex-shrink-0 mt-1">
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                <User className="h-4 w-4 text-white" />
+              <div className="h-7 w-7 rounded-full bg-blue-500 flex items-center justify-center">
+                <User className="h-3.5 w-3.5 text-white" />
               </div>
             </div>
           )}

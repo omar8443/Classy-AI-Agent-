@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { formatDistanceToNow } from "date-fns"
+import { format, formatDistanceToNow } from "date-fns"
+import { Phone, Archive, Trash2, Search, ChevronRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +17,17 @@ type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
 
 interface CallsTableProps {
   calls: SerializedCall[]
+}
+
+function formatPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "")
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  if (digits.length === 11 && digits[0] === "1") {
+    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`
+  }
+  return phone
 }
 
 export function CallsTable({ calls: initialCalls }: CallsTableProps) {
@@ -38,7 +50,8 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
       return matchesSearch
     })
 
-  const handleArchive = async (id: string) => {
+  const handleArchive = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
     setArchivingId(id)
     try {
       const response = await fetch(`/api/calls/${id}`, {
@@ -61,7 +74,8 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
     if (!confirm("Delete this call permanently?")) {
       return
     }
@@ -88,61 +102,95 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by caller, phone, or transcript..."
+          placeholder="Search calls..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-sm"
+          className="pl-10 max-w-md"
         />
       </div>
 
       {filteredCalls.length === 0 ? (
-        <div className="py-8 text-center text-muted-foreground">
-          {calls.length === 0 ? "No calls yet." : "No calls match your filters."}
+        <div className="py-16 text-center">
+          <Phone className="mx-auto h-12 w-12 text-muted-foreground/50" />
+          <p className="mt-4 text-muted-foreground">
+            {calls.length === 0 ? "No calls yet" : "No calls match your search"}
+          </p>
         </div>
       ) : (
-        <div className="rounded-lg border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="h-12 px-4 text-left align-middle font-medium">Date/Time</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Caller</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Phone</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Summary</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCalls.map((call) => {
-                const summary = call.summary || (call.transcript ? `${call.transcript.slice(0, 120)}...` : "")
-                return (
-                  <tr
-                    key={call.id}
-                    onClick={() => router.push(`/calls/${call.id}`)}
-                    className="cursor-pointer border-b transition-colors hover:bg-muted/50"
-                  >
-                    <td className="p-4 text-muted-foreground">{formatDistanceToNow(new Date(call.createdAt), { addSuffix: true })}</td>
-                    <td className="p-4 font-medium">{call.callerName || "Unknown"}</td>
-                    <td className="p-4 text-muted-foreground">{call.callerPhoneNumber}</td>
-                    <td className="p-4 text-muted-foreground">
-                      <div className="line-clamp-2">{summary}</div>
-                    </td>
-                    <td className="p-4" onClick={(event) => event.stopPropagation()}>
-                      <div className="flex flex-wrap gap-2">
-                        <Button size="sm" variant="outline" disabled={archivingId === call.id} onClick={() => handleArchive(call.id)}>
-                          {archivingId === call.id ? "Archiving…" : "Archive"}
-                        </Button>
-                        <Button size="sm" variant="destructive" disabled={deletingId === call.id} onClick={() => handleDelete(call.id)}>
-                          {deletingId === call.id ? "Deleting…" : "Delete"}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {filteredCalls.map((call) => {
+            const createdAt = new Date(call.createdAt)
+            const summary = call.summary || (call.transcript ? call.transcript.slice(0, 100) + "..." : "No summary")
+            
+            return (
+              <div
+                key={call.id}
+                onClick={() => router.push(`/calls/${call.id}`)}
+                className="group flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
+              >
+                {/* Avatar */}
+                <div className="flex-shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Phone className="h-5 w-5 text-primary" />
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium truncate">
+                      {call.callerName || "Unknown Caller"}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {formatPhoneNumber(call.callerPhoneNumber)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">
+                    {summary}
+                  </p>
+                </div>
+
+                {/* Time & Actions */}
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="text-right hidden sm:block">
+                    <div className="text-sm font-medium">
+                      {format(createdAt, "MMM d")}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {format(createdAt, "h:mm a")}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      disabled={archivingId === call.id}
+                      onClick={(e) => handleArchive(call.id, e)}
+                    >
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      disabled={deletingId === call.id}
+                      onClick={(e) => handleDelete(call.id, e)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

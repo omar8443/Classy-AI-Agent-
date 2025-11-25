@@ -118,100 +118,44 @@ export function CallDetailClient({ call, lead, formattedTranscript }: CallDetail
         </Card>
       </div>
 
-      <Card className="border-t-4 border-t-gradient-to-r from-primary to-blue-500">
-        <CardHeader className="border-b bg-gradient-to-r from-primary/5 via-blue-500/5 to-purple-500/5">
-          <CardTitle className="text-xl flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            Conversation Transcript
-          </CardTitle>
-          <p className="text-sm text-muted-foreground mt-2">
-            Full conversation between agent and caller • iMessage style
-          </p>
-        </CardHeader>
-        <CardContent className="p-0 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-background">
-          <TranscriptViewer transcript={call.transcript} />
-        </CardContent>
-      </Card>
-
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-l-4 border-l-amber-500">
-          <CardHeader className="border-b bg-gradient-to-r from-amber-500/5 to-transparent">
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-2xl">📝</span>
-              Agent Notes
+        {/* Conversation Transcript */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+              Conversation
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
-              Internal notes and follow-up instructions
-            </p>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  <span className="text-lg">💰</span>
-                  Price Quoted by agent
-                </label>
-                <input
-                  type="text"
-                  defaultValue={lead?.quotedPrice?.toString() || ""}
-                  className="w-full rounded-lg border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                  placeholder="$0.00"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Follow-up notes</label>
-                <textarea
-                  className="min-h-[240px] w-full resize-none rounded-lg border-2 border-input bg-background p-4 text-sm leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                  placeholder="Add notes..."
-                  defaultValue={call.notes || ""}
-                />
-              </div>
-            </div>
+          <CardContent className="p-0">
+            <TranscriptViewer transcript={call.transcript} />
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-slate-500">
-          <CardHeader className="border-b bg-gradient-to-r from-slate-500/5 to-transparent">
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-2xl">⚙️</span>
-              Call Metadata
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
-              Technical information
-            </p>
+        {/* Agent Notes */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Agent Notes</CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div className="rounded-lg bg-slate-50 dark:bg-slate-950/30 p-3 border border-slate-200 dark:border-slate-800">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Call ID</div>
-                <code className="text-sm font-mono font-semibold">{call.id}</code>
-              </div>
-              {call.durationSeconds && (
-                <div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Duration</div>
-                  <div className="text-lg font-bold text-primary">
-                    {Math.floor(call.durationSeconds / 60)}m {call.durationSeconds % 60}s
-                  </div>
-                </div>
-              )}
-              <div>
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Provider</div>
-                <Badge className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 capitalize">
-                  {call.provider}
-                </Badge>
-              </div>
-              <div>
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Status</div>
-                <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                  {call.status || "pending"}
-                </Badge>
-              </div>
-              {call.direction && (
-                <div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Direction</div>
-                  <Badge variant="outline" className="capitalize">{call.direction}</Badge>
-                </div>
-              )}
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">
+                Price Quoted
+              </label>
+              <input
+                type="text"
+                defaultValue={lead?.quotedPrice?.toString() || ""}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                placeholder="$0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">Notes</label>
+              <textarea
+                className="min-h-[200px] w-full resize-none rounded-md border border-input bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                placeholder="Add notes..."
+                defaultValue={call.notes || ""}
+              />
             </div>
           </CardContent>
         </Card>

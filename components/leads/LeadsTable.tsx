@@ -2,11 +2,11 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { formatDistanceToNow } from "date-fns"
+import { format, formatDistanceToNow } from "date-fns"
+import { User, Search, Phone, Mail, ChevronRight } from "lucide-react"
 
-import { Lead, LeadStatus } from "@/types/leads"
+import { Lead } from "@/types/leads"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
   createdAt: string
@@ -17,125 +17,111 @@ interface LeadsTableProps {
   leads: SerializedLead[]
 }
 
-const statusOptions: LeadStatus[] = ["new", "in_progress", "booked", "closed", "lost"]
+function formatPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "")
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  if (digits.length === 11 && digits[0] === "1") {
+    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`
+  }
+  return phone
+}
 
 export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [statusValues, setStatusValues] = useState<Record<string, LeadStatus>>(() =>
-    Object.fromEntries(initialLeads.map((lead) => [lead.id, lead.status]))
-  )
 
   const filteredLeads = initialLeads.filter((lead) => {
     const normalizedQuery = searchQuery.toLowerCase()
-    const matchesSearch =
+    return (
       searchQuery === "" ||
       lead.name?.toLowerCase().includes(normalizedQuery) ||
       lead.phoneNumber.includes(searchQuery) ||
       lead.email?.toLowerCase().includes(normalizedQuery)
-    
-    const matchesStatus = statusFilter === "all" || lead.status === statusFilter
-
-    return matchesSearch && matchesStatus
+    )
   })
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by name or phone..."
+          placeholder="Search clients..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-sm"
+          className="pl-10 max-w-md"
         />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="new">New</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="booked">Booked</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
-            <SelectItem value="lost">Lost</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {filteredLeads.length === 0 ? (
-        <div className="py-8 text-center text-muted-foreground">
-          {initialLeads.length === 0 ? "No leads yet." : "No leads match your filters."}
+        <div className="py-16 text-center">
+          <User className="mx-auto h-12 w-12 text-muted-foreground/50" />
+          <p className="mt-4 text-muted-foreground">
+            {initialLeads.length === 0 ? "No clients yet" : "No clients match your search"}
+          </p>
         </div>
       ) : (
-        <div className="rounded-lg border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="h-12 px-4 text-left align-middle font-medium">Name</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Phone</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Email</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Last Call</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Total Calls</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLeads.map((lead) => {
-                const updatedAt = new Date(lead.updatedAt)
-                return (
-                  <tr
-                    key={lead.id}
-                    onClick={() => router.push(`/leads/${lead.id}`)}
-                    className="cursor-pointer border-b transition-colors hover:bg-muted/50"
-                  >
-                    <td className="p-4 font-medium">{lead.name || "Unknown"}</td>
-                    <td className="p-4 text-muted-foreground">{lead.phoneNumber}</td>
-                    <td className="p-4 text-muted-foreground">
-                      {lead.email ? (
-                        <a
-                          href={`mailto:${lead.email}`}
-                          className="text-foreground underline decoration-dotted underline-offset-4"
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          {lead.email}
-                        </a>
-                      ) : (
-                        "Not provided"
-                      )}
-                    </td>
-                    <td className="p-4" onClick={(event) => event.stopPropagation()}>
-                      <Select
-                        value={statusValues[lead.id] || lead.status}
-                        onValueChange={(value) =>
-                          setStatusValues((prev) => ({
-                            ...prev,
-                            [lead.id]: value as LeadStatus,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="w-[160px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status.replace("_", " ")}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="p-4 text-muted-foreground">
-                      {lead.lastCallId ? formatDistanceToNow(updatedAt, { addSuffix: true }) : "Never"}
-                    </td>
-                    <td className="p-4 text-muted-foreground">{lead.totalCalls}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {filteredLeads.map((lead) => {
+            const createdAt = new Date(lead.createdAt)
+            
+            return (
+              <div
+                key={lead.id}
+                onClick={() => router.push(`/leads/${lead.id}`)}
+                className="group flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
+              >
+                {/* Avatar */}
+                <div className="flex-shrink-0">
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-lg">
+                    {lead.name ? lead.name.charAt(0).toUpperCase() : "?"}
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-lg truncate">
+                      {lead.name || "Unknown Client"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Phone className="h-3.5 w-3.5" />
+                      {formatPhoneNumber(lead.phoneNumber)}
+                    </span>
+                    {lead.email && (
+                      <span className="flex items-center gap-1 truncate">
+                        <Mail className="h-3.5 w-3.5" />
+                        {lead.email}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Stats & Time */}
+                <div className="flex items-center gap-6 flex-shrink-0">
+                  <div className="text-center hidden sm:block">
+                    <div className="text-2xl font-bold text-primary">{lead.totalCalls}</div>
+                    <div className="text-xs text-muted-foreground">calls</div>
+                  </div>
+                  
+                  <div className="text-right hidden md:block">
+                    <div className="text-sm font-medium">
+                      {format(createdAt, "MMM d, yyyy")}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Client since
+                    </div>
+                  </div>
+                  
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

@@ -3,13 +3,16 @@
 import { Lead } from "@/types/leads"
 import { Call } from "@/types/calls"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { LeadDetailForm } from "@/components/leads/LeadDetailForm"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { CallsList } from "@/components/calls/CallsList"
-import { formatDistanceToNow } from "date-fns"
+import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { ArrowLeft, Phone, Mail } from "lucide-react"
-import { statusColors } from "@/lib/constants"
+import { ArrowLeft, Phone, Mail, Calendar, Plane, MapPin, Clock, MessageSquare } from "lucide-react"
+import { useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
+import { useRouter } from "next/navigation"
 
 type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
   createdAt: string
@@ -28,119 +31,248 @@ interface LeadDetailClientProps {
   latestCallTimestamp: string | null
 }
 
+function formatPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "")
+  if (digits.length === 10) {
+    return `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  if (digits.length === 11 && digits[0] === "1") {
+    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`
+  }
+  return phone
+}
+
 export function LeadDetailClient({
   lead,
   calls,
   latestSummary,
   latestCallTimestamp,
 }: LeadDetailClientProps) {
+  const { toast } = useToast()
+  const router = useRouter()
+  const [name, setName] = useState(lead.name || "")
+  const [email, setEmail] = useState(lead.email || "")
+  const [notes, setNotes] = useState(lead.notes || "")
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    try {
+      const response = await fetch(`/api/leads/${lead.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, notes }),
+      })
+      if (!response.ok) throw new Error("Failed to save")
+      toast({ title: "Saved", description: "Client profile updated." })
+      router.refresh()
+    } catch {
+      toast({ title: "Error", description: "Failed to save changes.", variant: "destructive" })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const createdAt = new Date(lead.createdAt)
+
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/leads"
-          className="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold">{lead.name || "Unknown Lead"}</h1>
-          <p className="text-muted-foreground mt-2">Lead details and call history</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/leads"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl">
+              {lead.name ? lead.name.charAt(0).toUpperCase() : "?"}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">{lead.name || "Unknown Client"}</h1>
+              <p className="text-muted-foreground">
+                Client since {format(createdAt, "MMMM yyyy")}
+              </p>
+            </div>
+          </div>
         </div>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save Changes"}
+        </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Lead Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LeadDetailForm lead={lead} />
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Left Column - Contact & Profile */}
         <div className="space-y-6">
+          {/* Contact Card */}
           <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Contact Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <div className="text-sm text-muted-foreground mb-2">Status</div>
-                <Badge className={statusColors[lead.status] || statusColors.new}>
-                  {lead.status.replace("_", " ")}
-                </Badge>
+                <label className="text-sm text-muted-foreground">Name</label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Client name"
+                  className="mt-1"
+                />
               </div>
               <div>
-                <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  Phone
-                </div>
+                <label className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Phone className="h-3.5 w-3.5" /> Phone
+                </label>
                 <a
                   href={`tel:${lead.phoneNumber}`}
-                  className="font-medium text-primary hover:underline text-lg"
+                  className="block mt-1 text-lg font-medium text-primary hover:underline"
                 >
-                  {lead.phoneNumber}
+                  {formatPhoneNumber(lead.phoneNumber)}
                 </a>
               </div>
-              {lead.email && (
-                <div>
-                  <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </div>
-                  <a
-                    href={`mailto:${lead.email}`}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {lead.email}
-                  </a>
-                </div>
-              )}
               <div>
-                <div className="text-sm text-muted-foreground">Source</div>
-                <div className="font-medium">{lead.source}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Total Calls</div>
-                <div className="text-2xl font-bold">{lead.totalCalls}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Created</div>
-                <div className="font-medium">
-                  {formatDistanceToNow(new Date(lead.createdAt), { addSuffix: true })}
-                </div>
+                <label className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Mail className="h-3.5 w-3.5" /> Email
+                </label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="client@email.com"
+                  className="mt-1"
+                />
               </div>
             </CardContent>
           </Card>
 
+          {/* Stats Card */}
           <Card>
-            <CardHeader>
-              <CardTitle>Latest Call Summary</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Client Stats</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-muted-foreground">
-              {latestSummary ? (
-                <>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {latestCallTimestamp
-                      ? formatDistanceToNow(new Date(latestCallTimestamp), { addSuffix: true })
-                      : "Recent activity"}
-                  </p>
-                  <p className="rounded-xl border border-muted bg-muted/20 p-4 text-base text-foreground">
-                    {latestSummary}
-                  </p>
-                </>
-              ) : (
-                <p>No calls logged for this lead yet. Once a call is recorded, its summary will appear here.</p>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <div className="text-3xl font-bold text-primary">{lead.totalCalls}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Total Calls</div>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <div className="text-3xl font-bold text-green-600">0</div>
+                  <div className="text-xs text-muted-foreground mt-1">Trips Booked</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Middle Column - Notes & Travel Preferences */}
+        <div className="space-y-6">
+          {/* Notes */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Agent Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add notes about this client's preferences, past trips, special requests..."
+                className="min-h-[200px] resize-none"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Travel Preferences */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Plane className="h-4 w-4" />
+                Travel Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex items-center justify-between p-2 rounded bg-muted/50">
+                <span className="text-muted-foreground">Preferred destinations</span>
+                <span className="font-medium">Not set</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded bg-muted/50">
+                <span className="text-muted-foreground">Budget range</span>
+                <span className="font-medium">Not set</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded bg-muted/50">
+                <span className="text-muted-foreground">Travel style</span>
+                <span className="font-medium">Not set</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Latest Summary & Quick Actions */}
+        <div className="space-y-6">
+          {/* Latest Call Summary */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Latest Conversation</CardTitle>
+              {latestCallTimestamp && (
+                <p className="text-xs text-muted-foreground">
+                  {formatDistanceToNow(new Date(latestCallTimestamp), { addSuffix: true })}
+                </p>
               )}
+            </CardHeader>
+            <CardContent>
+              {latestSummary ? (
+                <p className="text-sm leading-relaxed bg-muted/50 rounded-lg p-3">
+                  {latestSummary}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No conversations yet.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href={`tel:${lead.phoneNumber}`}>
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call Client
+                </a>
+              </Button>
+              {lead.email && (
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <a href={`mailto:${lead.email}`}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send Email
+                  </a>
+                </Button>
+              )}
+              <Button variant="outline" className="w-full justify-start">
+                <Calendar className="h-4 w-4 mr-2" />
+                Create Reservation
+              </Button>
             </CardContent>
           </Card>
         </div>
       </div>
 
+      {/* Call History */}
       <Card>
-        <CardHeader>
-          <CardTitle>Call History</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Call History
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <CallsList calls={calls} />
