@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { format, formatDistanceToNow } from "date-fns"
-import { Phone, Archive, Trash2, Search, ChevronRight } from "lucide-react"
+import { format } from "date-fns"
+import { Phone, Archive, Trash2, Search, ChevronRight, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { Call } from "@/types/calls"
 
@@ -28,6 +29,25 @@ function formatPhoneNumber(phone: string): string {
     return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`
   }
   return phone
+}
+
+// Couleurs pour les agents assignés
+const agentColors: Record<string, string> = {
+  default: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+}
+
+function getAgentColor(agentName: string): string {
+  // Génère une couleur basée sur le nom
+  const colors = [
+    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+    "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300",
+    "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
+    "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
+  ]
+  const index = agentName.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return colors[index % colors.length]
 }
 
 export function CallsTable({ calls: initialCalls }: CallsTableProps) {
@@ -109,7 +129,7 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
           placeholder="Search calls..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 max-w-md"
+          className="pl-10 max-w-sm"
         />
       </div>
 
@@ -124,65 +144,75 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
         <div className="space-y-2">
           {filteredCalls.map((call) => {
             const createdAt = new Date(call.createdAt)
-            const summary = call.summary || (call.transcript ? call.transcript.slice(0, 100) + "..." : "No summary")
+            const isUnassigned = !call.assignedTo
             
             return (
               <div
                 key={call.id}
                 onClick={() => router.push(`/calls/${call.id}`)}
-                className="group flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
+                className={`group flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  isUnassigned 
+                    ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-950/30" 
+                    : "bg-card hover:bg-accent/50"
+                }`}
               >
                 {/* Avatar */}
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Phone className="h-5 w-5 text-primary" />
+                  <div className={`h-9 w-9 rounded-full flex items-center justify-center ${
+                    isUnassigned ? "bg-orange-200 dark:bg-orange-800" : "bg-primary/10"
+                  }`}>
+                    <Phone className={`h-4 w-4 ${isUnassigned ? "text-orange-600 dark:text-orange-300" : "text-primary"}`} />
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium truncate">
-                      {call.callerName || "Unknown Caller"}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-sm">
+                      {call.callerName || "Unknown"}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {formatPhoneNumber(call.callerPhoneNumber)}
                     </span>
+                    {/* Badge d'assignation */}
+                    {call.assignedToName ? (
+                      <Badge className={`text-xs ${getAgentColor(call.assignedToName)}`}>
+                        <User className="h-3 w-3 mr-1" />
+                        {call.assignedToName}
+                      </Badge>
+                    ) : (
+                      <Badge className="text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+                        Unassigned
+                      </Badge>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground truncate mt-0.5">
-                    {summary}
-                  </p>
                 </div>
 
                 {/* Time & Actions */}
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="text-right hidden sm:block">
-                    <div className="text-sm font-medium">
-                      {format(createdAt, "MMM d")}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {format(createdAt, "h:mm a")}
-                    </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="text-right text-xs">
+                    <div className="font-medium">{format(createdAt, "MMM d")}</div>
+                    <div className="text-muted-foreground">{format(createdAt, "h:mm a")}</div>
                   </div>
                   
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8"
+                      className="h-7 w-7"
                       disabled={archivingId === call.id}
                       onClick={(e) => handleArchive(call.id, e)}
                     >
-                      <Archive className="h-4 w-4" />
+                      <Archive className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
                       disabled={deletingId === call.id}
                       onClick={(e) => handleDelete(call.id, e)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                   
