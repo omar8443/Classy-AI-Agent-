@@ -7,12 +7,8 @@ export const revalidate = 0
 export default async function LeadsPage() {
   const leads = await getLeads()
 
-  // Serialize dates to ISO strings for client components
-  const serializedLeads = leads.map((lead) => ({
-    ...lead,
-    createdAt: (lead.createdAt instanceof Date ? lead.createdAt : new Date()).toISOString(),
-    updatedAt: (lead.updatedAt instanceof Date ? lead.updatedAt : new Date()).toISOString(),
-  }))
+  // Deep serialize to plain JSON objects
+  const serializedLeads = JSON.parse(JSON.stringify(leads))
 
   return <LeadsPageClient leads={serializedLeads} />
 }

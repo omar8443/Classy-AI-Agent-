@@ -16,16 +16,8 @@ export default async function UserDetailPage({
     notFound()
   }
 
-  // Serialize dates to ISO strings for client components
-  const serializedUser = {
-    ...user,
-    createdAt: (user.createdAt instanceof Date ? user.createdAt : new Date()).toISOString(),
-    updatedAt: (user.updatedAt instanceof Date ? user.updatedAt : new Date()).toISOString(),
-    lastLoginAt: user.lastLoginAt
-      ? (user.lastLoginAt instanceof Date ? user.lastLoginAt : new Date()).toISOString()
-      : null,
-  }
-
+  // Deep serialize to plain JSON objects
+  const serializedUser = JSON.parse(JSON.stringify(user))
   const lastLogin = serializedUser.lastLoginAt
 
   return <UserDetailClient user={serializedUser} lastLogin={lastLogin} />

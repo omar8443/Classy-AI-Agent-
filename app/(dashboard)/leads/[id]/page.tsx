@@ -17,20 +17,9 @@ export default async function LeadDetailPage({
     notFound()
   }
 
-  // Serialize dates to ISO strings for client components
-  const serializedLead = {
-    ...lead,
-    createdAt: (lead.createdAt instanceof Date ? lead.createdAt : new Date()).toISOString(),
-    updatedAt: (lead.updatedAt instanceof Date ? lead.updatedAt : new Date()).toISOString(),
-  }
-
-  const serializedCalls = calls.map((call) => ({
-    ...call,
-    createdAt: (call.createdAt instanceof Date ? call.createdAt : new Date()).toISOString(),
-    endedAt: call.endedAt 
-      ? (call.endedAt instanceof Date ? call.endedAt : new Date()).toISOString()
-      : null,
-  }))
+  // Deep serialize to plain JSON objects
+  const serializedLead = JSON.parse(JSON.stringify(lead))
+  const serializedCalls = JSON.parse(JSON.stringify(calls))
 
   const latestCall = serializedCalls[0] || null
   const latestSummary =

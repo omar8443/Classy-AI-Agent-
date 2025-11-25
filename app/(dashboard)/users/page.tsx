@@ -7,20 +7,13 @@ export const revalidate = 0
 export default async function UsersPage() {
   const users = await getUsers()
 
-  // Serialize dates to ISO strings for client components
-  const serializedUsers = users.map((user) => ({
-    ...user,
-    createdAt: (user.createdAt instanceof Date ? user.createdAt : new Date()).toISOString(),
-    updatedAt: (user.updatedAt instanceof Date ? user.updatedAt : new Date()).toISOString(),
-    lastLoginAt: user.lastLoginAt
-      ? (user.lastLoginAt instanceof Date ? user.lastLoginAt : new Date()).toISOString()
-      : null,
-  }))
+  // Deep serialize to plain JSON objects
+  const serializedUsers = JSON.parse(JSON.stringify(users))
 
-  const activeUsers = serializedUsers.filter((u) => u.status === "active").length
-  const adminCount = serializedUsers.filter((u) => u.role === "admin").length
-  const agentCount = serializedUsers.filter((u) => u.role === "agent").length
-  const managerCount = serializedUsers.filter((u) => u.role === "manager").length
+  const activeUsers = serializedUsers.filter((u: any) => u.status === "active").length
+  const adminCount = serializedUsers.filter((u: any) => u.role === "admin").length
+  const agentCount = serializedUsers.filter((u: any) => u.role === "agent").length
+  const managerCount = serializedUsers.filter((u: any) => u.role === "manager").length
 
   return (
     <UsersPageClient

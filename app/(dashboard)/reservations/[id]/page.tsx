@@ -19,35 +19,9 @@ export default async function ReservationDetailPage({
 
   const lead = reservation.leadId ? await getLeadById(reservation.leadId) : null
 
-  // Serialize dates to ISO strings for client components
-  const serializedReservation = {
-    ...reservation,
-    createdAt: (reservation.createdAt instanceof Date ? reservation.createdAt : new Date()).toISOString(),
-    updatedAt: (reservation.updatedAt instanceof Date ? reservation.updatedAt : new Date()).toISOString(),
-    travelDetails: {
-      ...reservation.travelDetails,
-      departureDate: (reservation.travelDetails.departureDate instanceof Date 
-        ? reservation.travelDetails.departureDate 
-        : new Date()).toISOString(),
-      returnDate: (reservation.travelDetails.returnDate instanceof Date 
-        ? reservation.travelDetails.returnDate 
-        : new Date()).toISOString(),
-    },
-    documents: reservation.documents.map((doc) => ({
-      ...doc,
-      uploadedAt: (doc.uploadedAt instanceof Date ? doc.uploadedAt : new Date()).toISOString(),
-    })),
-    history: reservation.history.map((entry) => ({
-      ...entry,
-      timestamp: (entry.timestamp instanceof Date ? entry.timestamp : new Date()).toISOString(),
-    })),
-  }
-
-  const serializedLead = lead ? {
-    ...lead,
-    createdAt: (lead.createdAt instanceof Date ? lead.createdAt : new Date()).toISOString(),
-    updatedAt: (lead.updatedAt instanceof Date ? lead.updatedAt : new Date()).toISOString(),
-  } : null
+  // Deep serialize to plain JSON objects
+  const serializedReservation = JSON.parse(JSON.stringify(reservation))
+  const serializedLead = lead ? JSON.parse(JSON.stringify(lead)) : null
 
   return <ReservationDetailClient reservation={serializedReservation} lead={serializedLead} />
 }
