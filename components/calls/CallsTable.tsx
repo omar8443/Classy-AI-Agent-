@@ -89,7 +89,7 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
             </thead>
             <tbody>
               {filteredCalls.map((call) => {
-                const createdAt = call.createdAt instanceof Date ? call.createdAt : new Date(call.createdAt)
+                const createdAt = call.createdAt instanceof Date ? call.createdAt : (call.createdAt?.toDate?.() || new Date())
                 return (
                   <tr
                     key={call.id}

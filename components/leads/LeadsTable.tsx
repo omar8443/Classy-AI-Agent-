@@ -71,7 +71,7 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
             </thead>
             <tbody>
               {filteredLeads.map((lead) => {
-                const updatedAt = lead.updatedAt instanceof Date ? lead.updatedAt : new Date(lead.updatedAt)
+                const updatedAt = lead.updatedAt instanceof Date ? lead.updatedAt : (lead.updatedAt?.toDate?.() || new Date())
                 return (
                   <tr
                     key={lead.id}

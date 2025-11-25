@@ -33,7 +33,7 @@ export default async function DashboardPage() {
   const newLeadsThisWeek = leads.filter((lead) => {
     const weekAgo = new Date()
     weekAgo.setDate(weekAgo.getDate() - 7)
-    const createdAt = lead.createdAt instanceof Date ? lead.createdAt : new Date(lead.createdAt)
+    const createdAt = lead.createdAt instanceof Date ? lead.createdAt : (lead.createdAt?.toDate?.() || new Date())
     return createdAt >= weekAgo
   }).length
   const totalCalls = calls.length
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
     },
     {
       title: "Recent Activity",
-      value: calls.length > 0 ? formatDistanceToNow(calls[0].createdAt instanceof Date ? calls[0].createdAt : new Date(calls[0].createdAt), { addSuffix: true }) : "No calls",
+      value: calls.length > 0 ? formatDistanceToNow(calls[0].createdAt instanceof Date ? calls[0].createdAt : (calls[0].createdAt?.toDate?.() || new Date()), { addSuffix: true }) : "No calls",
       icon: Clock,
       description: "Last call",
     },
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
           ) : (
             <div className="space-y-4">
               {calls.map((call) => {
-                const createdAt = call.createdAt instanceof Date ? call.createdAt : new Date(call.createdAt)
+                const createdAt = call.createdAt instanceof Date ? call.createdAt : (call.createdAt?.toDate?.() || new Date())
                 return (
                   <Link
                     key={call.id}

@@ -37,7 +37,7 @@ export function CallsList({ calls }: CallsListProps) {
   return (
     <div className="space-y-4">
       {calls.map((call) => {
-        const createdAt = call.createdAt instanceof Date ? call.createdAt : new Date(call.createdAt)
+        const createdAt = call.createdAt instanceof Date ? call.createdAt : (call.createdAt?.toDate?.() || new Date())
         return (
           <Link
             key={call.id}

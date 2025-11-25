@@ -39,7 +39,9 @@ export default async function CallDetailPage({
   }
 
   const lead = call.leadId ? await getLeadById(call.leadId) : null
-  const createdAt = call.createdAt instanceof Date ? call.createdAt : new Date(call.createdAt)
+  const createdAt = call.createdAt instanceof Date 
+    ? call.createdAt 
+    : call.createdAt?.toDate?.() || new Date()
 
   return (
     <div className="space-y-8">

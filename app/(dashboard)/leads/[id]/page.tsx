@@ -76,7 +76,7 @@ export default async function LeadDetailPage({
               <div className="text-sm text-muted-foreground">Created</div>
               <div className="font-medium">
                 {formatDistanceToNow(
-                  lead.createdAt instanceof Date ? lead.createdAt : new Date(lead.createdAt),
+                  lead.createdAt instanceof Date ? lead.createdAt : (lead.createdAt?.toDate?.() || new Date()),
                   { addSuffix: true }
                 )}
               </div>
