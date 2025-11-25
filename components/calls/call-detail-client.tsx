@@ -41,11 +41,34 @@ export function CallDetailClient({
   const { user } = useAuth()
   const [call, setCall] = useState(initialCall)
   const [isAssigning, setIsAssigning] = useState(false)
+  const [notes, setNotes] = useState(initialCall.notes || "")
+  const [isSavingNotes, setIsSavingNotes] = useState(false)
 
   // Navigate back and refresh to update the calls list
   const handleBack = () => {
     router.push("/calls")
     router.refresh()
+  }
+
+  // Save notes
+  const handleSaveNotes = async () => {
+    setIsSavingNotes(true)
+    try {
+      const response = await fetch(`/api/calls/${call.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes }),
+      })
+      if (response.ok) {
+        toast({ title: "Notes saved", description: "Your notes have been saved." })
+      } else {
+        throw new Error("Failed to save")
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to save notes.", variant: "destructive" })
+    } finally {
+      setIsSavingNotes(false)
+    }
   }
 
   // Handle manual assignment
@@ -211,8 +234,15 @@ export function CallDetailClient({
 
         {/* Agent Notes */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Agent Notes</CardTitle>
+            <Button 
+              size="sm" 
+              onClick={handleSaveNotes}
+              disabled={isSavingNotes}
+            >
+              {isSavingNotes ? "Saving..." : "Save Notes"}
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -231,7 +261,8 @@ export function CallDetailClient({
               <textarea
                 className="min-h-[200px] w-full resize-none rounded-md border border-input bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 placeholder="Add notes..."
-                defaultValue={call.notes || ""}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
               />
             </div>
           </CardContent>

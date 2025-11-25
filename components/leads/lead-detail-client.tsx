@@ -53,6 +53,9 @@ export function LeadDetailClient({
   const [name, setName] = useState(lead.name || "")
   const [email, setEmail] = useState(lead.email || "")
   const [notes, setNotes] = useState(lead.notes || "")
+  const [preferredDestinations, setPreferredDestinations] = useState(lead.travelPreferences?.preferredDestinations || "")
+  const [budgetRange, setBudgetRange] = useState(lead.travelPreferences?.budgetRange || "")
+  const [travelStyle, setTravelStyle] = useState(lead.travelPreferences?.travelStyle || "")
   const [isSaving, setIsSaving] = useState(false)
 
   const handleSave = async () => {
@@ -61,7 +64,16 @@ export function LeadDetailClient({
       const response = await fetch(`/api/leads/${lead.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, notes }),
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          notes,
+          travelPreferences: {
+            preferredDestinations: preferredDestinations || null,
+            budgetRange: budgetRange || null,
+            travelStyle: travelStyle || null,
+          }
+        }),
       })
       if (!response.ok) throw new Error("Failed to save")
       toast({ title: "Saved", description: "Client profile updated." })
@@ -195,18 +207,33 @@ export function LeadDetailClient({
                 Travel Preferences
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between p-2 rounded bg-muted/50">
-                <span className="text-muted-foreground">Preferred destinations</span>
-                <span className="font-medium">Not set</span>
+            <CardContent className="space-y-3">
+              <div>
+                <label className="text-sm text-muted-foreground">Preferred Destinations</label>
+                <Input
+                  value={preferredDestinations}
+                  onChange={(e) => setPreferredDestinations(e.target.value)}
+                  placeholder="Paris, Maldives, Japan..."
+                  className="mt-1"
+                />
               </div>
-              <div className="flex items-center justify-between p-2 rounded bg-muted/50">
-                <span className="text-muted-foreground">Budget range</span>
-                <span className="font-medium">Not set</span>
+              <div>
+                <label className="text-sm text-muted-foreground">Budget Range</label>
+                <Input
+                  value={budgetRange}
+                  onChange={(e) => setBudgetRange(e.target.value)}
+                  placeholder="$2,000 - $5,000"
+                  className="mt-1"
+                />
               </div>
-              <div className="flex items-center justify-between p-2 rounded bg-muted/50">
-                <span className="text-muted-foreground">Travel style</span>
-                <span className="font-medium">Not set</span>
+              <div>
+                <label className="text-sm text-muted-foreground">Travel Style</label>
+                <Input
+                  value={travelStyle}
+                  onChange={(e) => setTravelStyle(e.target.value)}
+                  placeholder="Luxury, Adventure, Family..."
+                  className="mt-1"
+                />
               </div>
             </CardContent>
           </Card>

@@ -10,6 +10,12 @@ export const LeadStatusSchema = z.enum([
 
 export type LeadStatus = z.infer<typeof LeadStatusSchema>
 
+export interface TravelPreferences {
+  preferredDestinations: string | null
+  budgetRange: string | null
+  travelStyle: string | null
+}
+
 export interface Lead {
   id: string
   createdAt: Date | FirebaseFirestore.Timestamp
@@ -24,7 +30,14 @@ export interface Lead {
   notes: string | null
   lastCallId: string | null
   totalCalls: number
+  travelPreferences?: TravelPreferences | null
 }
+
+export const TravelPreferencesSchema = z.object({
+  preferredDestinations: z.string().nullable(),
+  budgetRange: z.string().nullable(),
+  travelStyle: z.string().nullable(),
+})
 
 export const LeadSchema = z.object({
   phoneNumber: z.string().min(1),
@@ -37,5 +50,6 @@ export const LeadSchema = z.object({
   notes: z.string().nullable(),
   lastCallId: z.string().nullable(),
   totalCalls: z.number().int().min(0).default(0),
+  travelPreferences: TravelPreferencesSchema.nullable().optional(),
 })
 

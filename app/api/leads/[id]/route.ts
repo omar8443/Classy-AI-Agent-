@@ -32,6 +32,12 @@ export async function PATCH(
     if (body.notes !== undefined) {
       updates.notes = body.notes || null
     }
+    if (body.phoneNumber !== undefined) {
+      updates.phoneNumber = body.phoneNumber
+    }
+    if (body.travelPreferences !== undefined) {
+      updates.travelPreferences = body.travelPreferences
+    }
 
     await db.collection("leads").doc(params.id).update(updates)
 
