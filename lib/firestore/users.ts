@@ -166,6 +166,15 @@ export async function updateUserStats(
 export async function updateLastLogin(userId: string): Promise<void> {
   const { db } = getFirebaseAdmin()
   
+  // Check if user document exists first
+  const userDoc = await db.collection("users").doc(userId).get()
+  
+  if (!userDoc.exists) {
+    // User document doesn't exist yet, skip update silently
+    console.log(`User document ${userId} not found, skipping lastLogin update`)
+    return
+  }
+  
   await db.collection("users").doc(userId).update({
     lastLoginAt: new Date(),
   })

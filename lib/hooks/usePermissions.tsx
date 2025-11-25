@@ -30,8 +30,22 @@ export function usePermissions() {
           const userData: User = await response.json()
           setPermissions(userData.permissions)
           setRole(userData.role)
+        } else if (response.status === 404) {
+          // User document doesn't exist yet - treat as viewer with no permissions
+          console.log("User document not found, using default viewer permissions")
+          setRole("viewer")
+          setPermissions({
+            canViewDashboard: true,
+            canManageLeads: false,
+            canManageCalls: false,
+            canCreateReservations: false,
+            canManageReservations: false,
+            canManageUsers: false,
+            canAccessSettings: false,
+            canViewAnalytics: false,
+          })
         } else {
-          // Fallback: use default permissions based on role from custom claims
+          // Other error - use role from custom claims if available
           setRole(userRole || "viewer")
           setPermissions(null)
         }

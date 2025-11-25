@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getFirebaseAdmin } from "@/lib/firebaseAdmin"
-import { getUserById, updateUser } from "@/lib/firestore/users"
+import { getUserById, updateUser, createUserDocument } from "@/lib/firestore/users"
 
 export async function GET(
   request: NextRequest,
@@ -10,6 +10,28 @@ export async function GET(
     const user = await getUserById(params.id)
 
     if (!user) {
+      // Try to get user from Firebase Auth and create document
+      try {
+        const { auth } = getFirebaseAdmin()
+        const authUser = await auth.getUser(params.id)
+        
+        // Create user document with default settings
+        await createUserDocument(
+          params.id,
+          authUser.email || "unknown@example.com",
+          authUser.displayName || "Unknown User",
+          "agent" // Default role
+        )
+        
+        // Fetch the newly created user
+        const newUser = await getUserById(params.id)
+        if (newUser) {
+          return NextResponse.json(newUser)
+        }
+      } catch (createError) {
+        console.error("Error auto-creating user document:", createError)
+      }
+      
       return NextResponse.json(
         { ok: false, error: "User not found" },
         { status: 404 }
