@@ -89,18 +89,70 @@ export async function POST(request: NextRequest) {
 
     const rawPayload: ElevenLabsPostCallPayload = validationResult.data
     
+    // Extract data from nested ElevenLabs structure
+    const eventData = (body as any).data || body
+    const metadata = eventData.metadata || {}
+    const phoneCall = metadata.phone_call || {}
+    const analysis = eventData.analysis || {}
+    const dataCollection = analysis.data_collection_results || {}
+    
+    // Extract phone number from multiple possible locations
+    const phoneNumber = 
+      phoneCall.external_number || // ElevenLabs: +15145132710
+      dataCollection.client_phone?.value || // ElevenLabs data collection: 5145132710
+      rawPayload.caller_phone_number || 
+      rawPayload.callerPhoneNumber || 
+      rawPayload.phone_number || 
+      rawPayload.phoneNumber || 
+      rawPayload.from || 
+      "unknown"
+    
+    // Extract caller name from multiple possible locations
+    const callerName = 
+      dataCollection.client_name?.value || // ElevenLabs data collection: "Omar Ali"
+      rawPayload.caller_name || 
+      rawPayload.callerName || 
+      rawPayload.name || 
+      null
+    
+    // Extract conversation/call ID
+    const callId = 
+      eventData.conversation_id || // ElevenLabs: conv_xxx
+      phoneCall.call_sid || // Twilio SID
+      rawPayload.call_id || 
+      rawPayload.callId || 
+      rawPayload.id || 
+      `call_${Date.now()}`
+    
+    // Extract transcript - ElevenLabs uses array format
+    let transcriptData = eventData.transcript || rawPayload.transcript
+    
+    // Extract timestamp
+    const timestamp = 
+      (body as any).event_timestamp || 
+      metadata.start_time_unix_secs ||
+      rawPayload.timestamp || 
+      rawPayload.created_at || 
+      rawPayload.createdAt || 
+      Date.now()
+    
+    // Extract duration
+    const duration = 
+      metadata.call_duration_secs ||
+      rawPayload.duration || 
+      rawPayload.durationSeconds
+    
     // Normalize field names to handle different formats
     const payload = {
-      call_id: rawPayload.call_id || rawPayload.callId || rawPayload.id || `call_${Date.now()}`,
-      timestamp: rawPayload.timestamp || rawPayload.created_at || rawPayload.createdAt || Date.now(),
-      caller_phone_number: rawPayload.caller_phone_number || rawPayload.callerPhoneNumber || 
-                          rawPayload.phone_number || rawPayload.phoneNumber || rawPayload.from || "unknown",
-      caller_name: rawPayload.caller_name || rawPayload.callerName || rawPayload.name || null,
-      transcript: rawPayload.transcript,
+      call_id: callId,
+      timestamp: timestamp,
+      caller_phone_number: phoneNumber,
+      caller_name: callerName,
+      transcript: transcriptData,
       audio_url: rawPayload.audio_url || rawPayload.audioUrl || rawPayload.recording_url || rawPayload.recordingUrl || null,
-      duration: rawPayload.duration || rawPayload.durationSeconds,
-      agent_id: rawPayload.agent_id || rawPayload.agentId,
-      metadata: rawPayload.metadata,
+      duration: duration,
+      agent_id: eventData.agent_id || rawPayload.agent_id || rawPayload.agentId,
+      metadata: metadata,
     }
     
     console.log("✅ Normalized payload:", JSON.stringify(payload, null, 2))
@@ -130,20 +182,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, message: "Call already processed" })
     }
 
-    // Process transcript
+    // Process transcript - ElevenLabs format: array of {role, message}
     let transcript = ""
     if (payload.transcript) {
       if (typeof payload.transcript === "string") {
         transcript = payload.transcript
       } else if (Array.isArray(payload.transcript)) {
         if (payload.transcript.length > 0) {
-          if (typeof payload.transcript[0] === "string") {
-            transcript = (payload.transcript as string[]).join(" ")
-          } else {
-            // Array of objects with speaker/text
+          const firstItem = payload.transcript[0]
+          
+          // ElevenLabs format: {role: "agent"|"user", message: "..."}
+          if (typeof firstItem === "object" && "role" in firstItem && "message" in firstItem) {
+            transcript = (payload.transcript as Array<{ role: string; message: string | null }>)
+              .filter((seg) => seg.message) // Filter out null messages (tool calls, etc.)
+              .map((seg) => `${seg.role === "agent" ? "Agent" : "User"}: ${seg.message}`)
+              .join("\n")
+          }
+          // Generic format: {speaker, text}
+          else if (typeof firstItem === "object" && "speaker" in firstItem && "text" in firstItem) {
             transcript = (payload.transcript as Array<{ speaker: string; text: string }>)
               .map((seg) => `${seg.speaker}: ${seg.text}`)
               .join("\n")
+          }
+          // Array of strings
+          else if (typeof firstItem === "string") {
+            transcript = (payload.transcript as string[]).join(" ")
           }
         }
       }
@@ -158,6 +221,9 @@ export async function POST(request: NextRequest) {
       durationSeconds = payload.duration
     }
 
+    // Extract email from ElevenLabs data collection if available
+    const clientEmail = dataCollection.client_email?.value || null
+    
     // Find or create lead
     let leadId: string | null = null
     const leadsQuery = await db
@@ -173,20 +239,29 @@ export async function POST(request: NextRequest) {
       const leadData = leadDoc.data()
       const currentTotalCalls = leadData.totalCalls || 0
 
-      await leadDoc.ref.update({
+      const updateData: any = {
         updatedAt: new Date(),
         lastCallId: payload.call_id,
         totalCalls: currentTotalCalls + 1,
-        ...(payload.caller_name && !leadData.name
-          ? { name: payload.caller_name }
-          : {}),
-      })
+      }
+      
+      // Update name if we have it and lead doesn't
+      if (payload.caller_name && !leadData.name) {
+        updateData.name = payload.caller_name
+      }
+      
+      // Update email if we have it and lead doesn't
+      if (clientEmail && !leadData.email) {
+        updateData.email = clientEmail
+      }
+
+      await leadDoc.ref.update(updateData)
     } else {
       // Create new lead
       const newLeadData = LeadSchema.parse({
         phoneNumber: payload.caller_phone_number,
         name: payload.caller_name || null,
-        email: null,
+        email: clientEmail || null,
         source: "elevenlabs_voice_agent",
         status: "new",
         tags: [],
@@ -218,6 +293,10 @@ export async function POST(request: NextRequest) {
       durationSeconds,
       audioUrl: payload.audio_url || null,
       labels: [],
+      assignedTo: null, // Will be assigned by admin/agent
+      assignedToName: null,
+      notes: null,
+      status: "pending", // New calls start as pending
     })
 
     // Calculate end time based on timestamp and duration
