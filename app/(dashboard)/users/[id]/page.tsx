@@ -16,12 +16,20 @@ export default async function UserDetailPage({
     notFound()
   }
 
-  const lastLogin = user.lastLoginAt
-    ? user.lastLoginAt instanceof Date
-      ? user.lastLoginAt
-      : user.lastLoginAt.toDate?.() || new Date()
-    : null
+  // Serialize Firestore Timestamps to plain objects
+  const serializedUser = {
+    ...user,
+    createdAt: user.createdAt instanceof Date ? user.createdAt : user.createdAt?.toDate?.() || new Date(),
+    updatedAt: user.updatedAt instanceof Date ? user.updatedAt : user.updatedAt?.toDate?.() || new Date(),
+    lastLoginAt: user.lastLoginAt
+      ? user.lastLoginAt instanceof Date
+        ? user.lastLoginAt
+        : user.lastLoginAt.toDate?.() || new Date()
+      : null,
+  }
 
-  return <UserDetailClient user={user} lastLogin={lastLogin} />
+  const lastLogin = serializedUser.lastLoginAt
+
+  return <UserDetailClient user={serializedUser} lastLogin={lastLogin} />
 }
 

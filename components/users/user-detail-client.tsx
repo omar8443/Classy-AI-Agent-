@@ -12,8 +12,15 @@ import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
+// Client-safe user type with serialized dates
+type SerializedUser = Omit<User, "createdAt" | "updatedAt" | "lastLoginAt"> & {
+  createdAt: Date
+  updatedAt: Date
+  lastLoginAt: Date | null
+}
+
 interface UserDetailClientProps {
-  user: User
+  user: SerializedUser
   lastLogin: Date | null
 }
 
