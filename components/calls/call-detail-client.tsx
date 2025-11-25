@@ -1,17 +1,18 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Call } from "@/types/calls"
 import { Lead } from "@/types/leads"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { CallActions } from "@/components/calls/call-actions"
 import { TranscriptViewer } from "@/components/calls/transcript-viewer"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { ArrowLeft, User } from "lucide-react"
+import { ArrowLeft, User, UserPlus, AlertCircle } from "lucide-react"
 
 // Serialized types for client components
 export type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
@@ -38,54 +39,75 @@ export function CallDetailClient({
   const { toast } = useToast()
   const { user } = useAuth()
   const [call, setCall] = useState(initialCall)
-  const [hasAutoAssigned, setHasAutoAssigned] = useState(false)
+  const [isAssigning, setIsAssigning] = useState(false)
 
-  // Auto-assign call to current user if unassigned
-  useEffect(() => {
-    const autoAssign = async () => {
-      // Only auto-assign if:
-      // - Call is not already assigned
-      // - We have user info
-      // - We haven't already tried to auto-assign
-      if (call.assignedTo || !user || hasAutoAssigned) {
-        return
-      }
+  // Handle manual assignment
+  const handleAssignToMe = async () => {
+    if (!user) return
+    
+    setIsAssigning(true)
+    const userName = user.displayName || user.email?.split("@")[0] || "Agent"
 
-      setHasAutoAssigned(true)
-      
-      const userName = user.displayName || user.email?.split("@")[0] || "Agent"
+    try {
+      const response = await fetch(`/api/calls/${call.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          assignedTo: user.uid,
+          assignedToName: userName 
+        }),
+      })
 
-      try {
-        const response = await fetch(`/api/calls/${call.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            assignedTo: user.uid,
-            assignedToName: userName 
-          }),
+      if (response.ok) {
+        setCall(prev => ({
+          ...prev,
+          assignedTo: user.uid,
+          assignedToName: userName
+        }))
+        toast({
+          title: "Call assigned",
+          description: "This call has been assigned to you.",
         })
-
-        if (response.ok) {
-          setCall(prev => ({
-            ...prev,
-            assignedTo: user.uid,
-            assignedToName: userName
-          }))
-          toast({
-            title: "Call assigned to you",
-            description: `This call has been automatically assigned to you.`,
-          })
-        }
-      } catch (error) {
-        console.error("Failed to auto-assign call:", error)
       }
+    } catch (error) {
+      console.error("Failed to assign call:", error)
+      toast({
+        title: "Assignment failed",
+        description: "Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsAssigning(false)
     }
-
-    autoAssign()
-  }, [call.id, call.assignedTo, user, hasAutoAssigned, toast])
+  }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Assignment reminder banner */}
+      {!call.assignedTo && user && (
+        <div className="flex items-center justify-between gap-4 p-4 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-orange-500" />
+            <div>
+              <p className="font-medium text-orange-800 dark:text-orange-200">
+                This call is not assigned
+              </p>
+              <p className="text-sm text-orange-600 dark:text-orange-400">
+                Take ownership of this call to track your progress
+              </p>
+            </div>
+          </div>
+          <Button 
+            onClick={handleAssignToMe}
+            disabled={isAssigning}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            {isAssigning ? "Assigning..." : "Assign to me"}
+          </Button>
+        </div>
+      )}
+
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <Link
