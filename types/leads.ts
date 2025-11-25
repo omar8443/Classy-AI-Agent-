@@ -17,6 +17,7 @@ export interface Lead {
   phoneNumber: string
   name: string | null
   email: string | null
+  quotedPrice?: string | null
   source: string
   status: LeadStatus
   tags: string[]
@@ -29,6 +30,7 @@ export const LeadSchema = z.object({
   phoneNumber: z.string().min(1),
   name: z.string().nullable(),
   email: z.string().email().nullable().or(z.literal("")),
+  quotedPrice: z.string().nullable().optional(),
   source: z.string().default("elevenlabs_voice_agent"),
   status: LeadStatusSchema.default("new"),
   tags: z.array(z.string()).default([]),
