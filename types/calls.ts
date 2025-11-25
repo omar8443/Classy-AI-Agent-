@@ -13,7 +13,6 @@ export interface Call {
   callerPhoneNumber: string
   callerName: string | null
   provider: string
-  rawPayload: Record<string, unknown> | string
   transcript: string
   summary: string
   durationSeconds: number | null
@@ -32,7 +31,6 @@ export const CallSchema = z.object({
   callerPhoneNumber: z.string().min(1),
   callerName: z.string().nullable(),
   provider: z.string().default("elevenlabs"),
-  rawPayload: z.union([z.record(z.unknown()), z.string()]),
   transcript: z.string().default(""),
   summary: z.string().default(""),
   durationSeconds: z.number().int().positive().nullable(),
