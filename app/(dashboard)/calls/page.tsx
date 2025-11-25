@@ -9,6 +9,15 @@ export const revalidate = 0
 export default async function CallsPage() {
   const calls = await getCalls()
 
+  // Serialize Firestore Timestamps to plain Date objects
+  const serializedCalls = calls.map((call) => ({
+    ...call,
+    createdAt: call.createdAt instanceof Date ? call.createdAt : call.createdAt?.toDate?.() || new Date(),
+    endedAt: call.endedAt 
+      ? (call.endedAt instanceof Date ? call.endedAt : call.endedAt?.toDate?.() || new Date()) 
+      : null,
+  }))
+
   return (
     <PageWrapper>
       <div className="space-y-8">
@@ -22,7 +31,7 @@ export default async function CallsPage() {
             <CardTitle>All Calls</CardTitle>
           </CardHeader>
           <CardContent>
-            <CallsTable calls={calls} />
+            <CallsTable calls={serializedCalls} />
           </CardContent>
         </Card>
       </div>
