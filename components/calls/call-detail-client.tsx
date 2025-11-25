@@ -8,7 +8,7 @@ import { CallActions } from "@/components/calls/call-actions"
 import { TranscriptViewer } from "@/components/calls/transcript-viewer"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, User } from "lucide-react"
 
 type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
   createdAt: Date
