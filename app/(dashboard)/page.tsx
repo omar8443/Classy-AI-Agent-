@@ -1,46 +1,41 @@
-import Link from "next/link"
-import { format, formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow } from "date-fns"
 import { Phone, TrendingUp, Users, Clock } from "lucide-react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCalls } from "@/lib/firestore/calls"
 import { getLeads } from "@/lib/firestore/leads"
-import { PageWrapper } from "@/components/motion/page-wrapper"
+import { DashboardPageClient } from "@/components/dashboard/dashboard-page-client"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-function formatPhoneNumber(phone: string): string {
-  // Remove any non-digit characters
-  const digits = phone.replace(/\D/g, "")
-  
-  // If it's 10 digits, assume US/Canada format
-  if (digits.length === 10) {
-    return `+1 ${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
-  }
-  
-  // If it's 11 digits starting with 1, format as US/Canada
-  if (digits.length === 11 && digits[0] === "1") {
-    return `+1 ${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`
-  }
-  
-  // Otherwise return as-is
-  return phone
-}
-
 export default async function DashboardPage() {
   const [leads, calls] = await Promise.all([getLeads(), getCalls(10)])
-  const activeCalls = calls.filter((call) => !call.archived)
+  
+  // Serialize dates
+  const serializedLeads = leads.map((lead) => ({
+    ...lead,
+    createdAt: lead.createdAt instanceof Date ? lead.createdAt : lead.createdAt?.toDate?.() || new Date(),
+    updatedAt: lead.updatedAt instanceof Date ? lead.updatedAt : lead.updatedAt?.toDate?.() || new Date(),
+  }))
 
-  const totalLeads = leads.length
-  const newLeadsThisWeek = leads.filter((lead) => {
+  const serializedCalls = calls.map((call) => ({
+    ...call,
+    createdAt: call.createdAt instanceof Date ? call.createdAt : call.createdAt?.toDate?.() || new Date(),
+    endedAt: call.endedAt 
+      ? (call.endedAt instanceof Date ? call.endedAt : call.endedAt?.toDate?.() || new Date()) 
+      : null,
+  }))
+
+  const activeCalls = serializedCalls.filter((call) => !call.archived)
+
+  const totalLeads = serializedLeads.length
+  const newLeadsThisWeek = serializedLeads.filter((lead) => {
     const weekAgo = new Date()
     weekAgo.setDate(weekAgo.getDate() - 7)
-    const createdAt = lead.createdAt instanceof Date ? lead.createdAt : lead.createdAt?.toDate?.()
-    return (createdAt || new Date()) >= weekAgo
+    return lead.createdAt >= weekAgo
   }).length
   const totalCalls = activeCalls.length
-  const bookedLeads = leads.filter((lead) => lead.status === "booked").length
+  const bookedLeads = serializedLeads.filter((lead) => lead.status === "booked").length
   const conversionRate = totalLeads > 0 ? ((bookedLeads / totalLeads) * 100).toFixed(1) : "0"
 
   const stats = [
@@ -66,12 +61,7 @@ export default async function DashboardPage() {
       title: "Recent Activity",
       value:
         activeCalls.length > 0
-          ? formatDistanceToNow(
-              activeCalls[0].createdAt instanceof Date
-                ? activeCalls[0].createdAt
-                : activeCalls[0].createdAt?.toDate?.() || new Date(),
-              { addSuffix: true }
-            )
+          ? formatDistanceToNow(activeCalls[0].createdAt, { addSuffix: true })
           : "No calls",
       description: "Last call",
       icon: Clock,
@@ -79,73 +69,11 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <PageWrapper>
-      <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="mt-2 text-muted-foreground">Overview of your leads and calls</p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="mt-1 text-xs text-muted-foreground">{stat.description}</p>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Calls</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {activeCalls.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">
-              No calls yet. Calls will appear here once webhooks are received.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activeCalls.map((call) => {
-                const createdAt = call.createdAt instanceof Date ? call.createdAt : call.createdAt?.toDate?.()
-                const preview =
-                  call.summary || (call.transcript ? `${call.transcript.slice(0, 100)}...` : "Awaiting transcript")
-                return (
-                  <Link
-                    key={call.id}
-                    href={`/calls/${call.id}`}
-                    className="block rounded-lg border p-4 transition-colors hover:bg-accent"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium">{call.callerName || "Unknown"}</span>
-                          <span className="text-sm text-muted-foreground">{formatPhoneNumber(call.callerPhoneNumber || "No number")}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">{preview}</p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>{createdAt ? format(createdAt, "MMM d, yyyy 'at' h:mm a") : "Just now"}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-    </PageWrapper>
+    <DashboardPageClient 
+      leads={serializedLeads}
+      activeCalls={activeCalls}
+      stats={stats}
+    />
   )
 }
 
