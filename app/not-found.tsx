@@ -12,7 +12,7 @@ export default function NotFound() {
         </CardHeader>
         <CardContent className="text-center">
           <p className="text-muted-foreground mb-4">
-            The page you're looking for doesn't exist.
+            The page you&apos;re looking for doesn&apos;t exist.
           </p>
           <Button asChild>
             <Link href="/">Go back home</Link>
