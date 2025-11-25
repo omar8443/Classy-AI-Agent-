@@ -5,12 +5,15 @@ export async function getLeads(): Promise<Lead[]> {
   const { db } = getFirebaseAdmin()
   const snapshot = await db.collection("leads").orderBy("createdAt", "desc").get()
   
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-  })) as Lead[]
+  return snapshot.docs.map((doc) => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      updatedAt: data.updatedAt?.toDate() || new Date(),
+    }
+  }) as Lead[]
 }
 
 export async function getLeadById(id: string): Promise<Lead | null> {
@@ -21,11 +24,12 @@ export async function getLeadById(id: string): Promise<Lead | null> {
     return null
   }
 
+  const data = doc.data()
   return {
     id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+    ...data,
+    createdAt: data.createdAt?.toDate() || new Date(),
+    updatedAt: data.updatedAt?.toDate() || new Date(),
   } as Lead
 }
 

@@ -11,12 +11,15 @@ export async function getCalls(limit?: number): Promise<Call[]> {
   
   const snapshot = await query.get()
   
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    endedAt: doc.data().endedAt?.toDate() || null,
-  })) as Call[]
+  return snapshot.docs.map((doc) => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      endedAt: data.endedAt?.toDate() || null,
+    }
+  }) as Call[]
 }
 
 export async function getCallsByLeadId(leadId: string): Promise<Call[]> {
@@ -27,12 +30,15 @@ export async function getCallsByLeadId(leadId: string): Promise<Call[]> {
     .orderBy("createdAt", "desc")
     .get()
   
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    endedAt: doc.data().endedAt?.toDate() || null,
-  })) as Call[]
+  return snapshot.docs.map((doc) => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      endedAt: data.endedAt?.toDate() || null,
+    }
+  }) as Call[]
 }
 
 export async function getCallById(id: string): Promise<Call | null> {
@@ -43,11 +49,12 @@ export async function getCallById(id: string): Promise<Call | null> {
     return null
   }
 
+  const data = doc.data()
   return {
     id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    endedAt: doc.data().endedAt?.toDate() || null,
+    ...data,
+    createdAt: data.createdAt?.toDate() || new Date(),
+    endedAt: data.endedAt?.toDate() || null,
   } as Call
 }
 
