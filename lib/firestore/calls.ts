@@ -50,6 +50,10 @@ export async function getCallById(id: string): Promise<Call | null> {
   }
 
   const data = doc.data()
+  if (!data) {
+    return null
+  }
+
   return {
     id: doc.id,
     ...data,

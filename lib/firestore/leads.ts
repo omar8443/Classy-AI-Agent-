@@ -25,6 +25,10 @@ export async function getLeadById(id: string): Promise<Lead | null> {
   }
 
   const data = doc.data()
+  if (!data) {
+    return null
+  }
+
   return {
     id: doc.id,
     ...data,
