@@ -3,19 +3,26 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { usePermissions } from "@/lib/hooks/usePermissions"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Phone, Users, LogOut, Plane } from "lucide-react"
+import { LayoutDashboard, Phone, Users, LogOut, Plane, UserCog, Settings } from "lucide-react"
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/leads", label: "Leads", icon: Users },
-  { href: "/calls", label: "Calls", icon: Phone },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
+  { href: "/leads", label: "Leads", icon: Users, adminOnly: false },
+  { href: "/calls", label: "Calls", icon: Phone, adminOnly: false },
+]
+
+const adminNavItems = [
+  { href: "/users", label: "Users", icon: UserCog, adminOnly: true },
+  { href: "/settings", label: "Settings", icon: Settings, adminOnly: true },
 ]
 
 export function DashboardSidebar() {
   const pathname = usePathname()
   const { signOut } = useAuth()
+  const { isAdmin } = usePermissions()
 
   return (
     <div className="flex w-64 flex-col border-r border-border bg-card">
@@ -41,6 +48,33 @@ export function DashboardSidebar() {
             </Link>
           )
         })}
+        
+        {isAdmin && (
+          <>
+            <div className="my-4 border-t border-border pt-4">
+              <p className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Administration
+              </p>
+            </div>
+            {adminNavItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
+                    isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </>
+        )}
       </nav>
       <div className="border-t border-border p-4">
         <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => signOut()}>

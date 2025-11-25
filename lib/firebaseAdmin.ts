@@ -1,18 +1,21 @@
 import { initializeApp, getApps, cert, App } from "firebase-admin/app"
 import { getFirestore, Firestore } from "firebase-admin/firestore"
+import { getAuth, Auth } from "firebase-admin/auth"
 
 let app: App | undefined
 let db: Firestore | undefined
+let auth: Auth | undefined
 
 export function getFirebaseAdmin() {
-  if (app && db) {
-    return { app, db }
+  if (app && db && auth) {
+    return { app, db, auth }
   }
 
   if (getApps().length > 0) {
     app = getApps()[0]
     db = getFirestore(app)
-    return { app, db }
+    auth = getAuth(app)
+    return { app, db, auth }
   }
 
   const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
@@ -41,7 +44,8 @@ export function getFirebaseAdmin() {
   })
 
   db = getFirestore(app)
+  auth = getAuth(app)
 
-  return { app, db }
+  return { app, db, auth }
 }
 

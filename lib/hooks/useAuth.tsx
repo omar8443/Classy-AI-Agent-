@@ -29,8 +29,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const { auth } = getFirebaseClient()
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
         setUser(user)
+        
+        // Update last login timestamp when user logs in
+        if (user) {
+          try {
+            await fetch(`/api/users/${user.uid}/last-login`, {
+              method: "POST",
+            })
+          } catch (error) {
+            console.error("Error updating last login:", error)
+          }
+        }
+        
         setLoading(false)
       })
 

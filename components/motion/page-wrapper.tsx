@@ -8,11 +8,6 @@ const pageVariants = {
   exit: { opacity: 0, y: -20 }
 }
 
-const pageTransition = {
-  duration: 0.3,
-  ease: "easeInOut"
-}
-
 export function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
@@ -20,7 +15,7 @@ export function PageWrapper({ children }: { children: React.ReactNode }) {
       animate="animate"
       exit="exit"
       variants={pageVariants}
-      transition={pageTransition}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
     >
       {children}
     </motion.div>

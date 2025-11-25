@@ -1,25 +1,47 @@
 import { getFirebaseAdmin } from "@/lib/firebaseAdmin"
-import { User, UserSchema } from "@/types/users"
+import { User, UserSchema, UserRole, defaultPermissions } from "@/types/users"
 
 /**
- * Create a new user document in Firestore
+ * Create a new user document in Firestore with custom claims
  */
 export async function createUserDocument(
   userId: string,
   email: string,
   name: string,
-  role: "admin" | "agent" | "viewer" = "agent"
+  role: UserRole = "agent"
 ): Promise<void> {
-  const { db } = getFirebaseAdmin()
+  const { db, auth } = getFirebaseAdmin()
   
   const userData = UserSchema.parse({
     email,
     name,
     role,
-    photoUrl: null,
-    phoneNumber: null,
-    isActive: true,
+    permissions: defaultPermissions[role],
+    avatar: null,
+    phone: null,
+    status: "active",
+    stats: {
+      totalCalls: 0,
+      totalReservations: 0,
+      totalRevenue: 0,
+      conversionRate: 0,
+      avgCallDuration: 0,
+    },
+    preferences: {
+      theme: "system",
+      language: "fr",
+      notifications: {
+        email: true,
+        push: false,
+        newLead: true,
+        newReservation: true,
+      },
+    },
+    lastLoginAt: null,
   })
+
+  // Set custom claims for role-based access
+  await auth.setCustomUserClaims(userId, { role })
 
   await db.collection("users").doc(userId).set({
     ...userData,
@@ -79,4 +101,72 @@ export async function updateUser(
 export async function isUserAdmin(userId: string): Promise<boolean> {
   const user = await getUserById(userId)
   return user?.role === "admin"
+}
+
+/**
+ * Update user role and custom claims
+ */
+export async function updateUserRole(userId: string, role: UserRole): Promise<void> {
+  const { db, auth } = getFirebaseAdmin()
+  
+  // Update custom claims
+  await auth.setCustomUserClaims(userId, { role })
+  
+  // Update Firestore document
+  await db.collection("users").doc(userId).update({
+    role,
+    permissions: defaultPermissions[role],
+    updatedAt: new Date(),
+  })
+}
+
+/**
+ * Update user permissions
+ */
+export async function updateUserPermissions(
+  userId: string,
+  permissions: Partial<User["permissions"]>
+): Promise<void> {
+  const { db } = getFirebaseAdmin()
+  const user = await getUserById(userId)
+  
+  if (!user) {
+    throw new Error("User not found")
+  }
+
+  await db.collection("users").doc(userId).update({
+    permissions: { ...user.permissions, ...permissions },
+    updatedAt: new Date(),
+  })
+}
+
+/**
+ * Update user stats
+ */
+export async function updateUserStats(
+  userId: string,
+  stats: Partial<User["stats"]>
+): Promise<void> {
+  const { db } = getFirebaseAdmin()
+  const user = await getUserById(userId)
+  
+  if (!user) {
+    throw new Error("User not found")
+  }
+
+  await db.collection("users").doc(userId).update({
+    stats: { ...user.stats, ...stats },
+    updatedAt: new Date(),
+  })
+}
+
+/**
+ * Update last login timestamp
+ */
+export async function updateLastLogin(userId: string): Promise<void> {
+  const { db } = getFirebaseAdmin()
+  
+  await db.collection("users").doc(userId).update({
+    lastLoginAt: new Date(),
+  })
 }
