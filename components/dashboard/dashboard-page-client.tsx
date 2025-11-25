@@ -110,8 +110,8 @@ function BoardingPassCard({
       { names: ["florida", "floride", "orlando"], code: "MCO", display: "Florida" },
       { names: ["new york", "nyc", "manhattan"], code: "JFK", display: "New York" },
       { names: ["las vegas", "vegas"], code: "LAS", display: "Las Vegas" },
-      { names: ["los angeles", "la", "hollywood"], code: "LAX", display: "Los Angeles" },
-      { names: ["hawaii", "hawaï", "honolulu", "maui"], code: "HNL", display: "Hawaii" },
+      { names: ["los angeles", "hollywood"], code: "LAX", display: "Los Angeles" },
+      { names: ["hawaii", "honolulu", "maui"], code: "HNL", display: "Hawaii" },
       { names: ["san francisco"], code: "SFO", display: "San Francisco" },
       { names: ["boston"], code: "BOS", display: "Boston" },
       { names: ["chicago"], code: "ORD", display: "Chicago" },
@@ -219,17 +219,16 @@ function BoardingPassCard({
   
   const isAssigned = !!call.assignedTo
   
-  // Debug: log the summary and detected destination
-  console.log("Call summary:", call.summary?.substring(0, 100))
-  console.log("Detected destination:", destination)
-  
   return (
     <Link href={`/calls/${call.id}`} className="block group">
-      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all hover:shadow-lg ${
-        isAssigned 
-          ? "border-green-500/30 hover:border-green-500/50" 
-          : "border-orange-500/30 hover:border-orange-500/50"
-      }`} style={{ backgroundColor: "white" }}>
+      <div 
+        className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all hover:shadow-lg ${
+          isAssigned 
+            ? "border-green-500/30 hover:border-green-500/50" 
+            : "border-orange-500/30 hover:border-orange-500/50"
+        }`} 
+        style={{ backgroundColor: "#ffffff" }}
+      >
         {/* Ticket perforation effect */}
         <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${
           isAssigned ? "from-green-500/20 via-green-500 to-green-500/20" : "from-orange-500/20 via-orange-500 to-orange-500/20"
