@@ -74,16 +74,103 @@ function BoardingPassCard({
   
   const createdAt = new Date(call.createdAt)
   
-  // Extract destination from summary or transcript (simple heuristic)
-  const extractDestination = () => {
-    const text = call.summary || call.transcript || ""
-    // Common destination patterns
-    const destinations = ["Paris", "Cancun", "Mexico", "Cuba", "Dominican", "Punta Cana", "Jamaica", "Bahamas", "Florida", "Miami", "New York", "Las Vegas", "Los Angeles", "Hawaii", "Europe", "Caribbean"]
+  // Extract destination from summary or transcript with comprehensive list
+  const extractDestination = (): { name: string; code: string } | null => {
+    const text = (call.summary || "") + " " + (call.transcript || "")
+    const textLower = text.toLowerCase()
+    
+    // Comprehensive list of destinations with their airport codes
+    const destinations: Array<{ names: string[]; code: string; display: string }> = [
+      // Caribbean
+      { names: ["punta cana", "puntacana"], code: "PUJ", display: "Punta Cana" },
+      { names: ["cancun", "cancún"], code: "CUN", display: "Cancun" },
+      { names: ["cuba", "havana", "varadero", "la havane"], code: "HAV", display: "Cuba" },
+      { names: ["dominican", "dominicaine", "république dominicaine", "santo domingo"], code: "SDQ", display: "Dominican Rep." },
+      { names: ["jamaica", "jamaïque", "montego bay"], code: "MBJ", display: "Jamaica" },
+      { names: ["bahamas", "nassau"], code: "NAS", display: "Bahamas" },
+      { names: ["aruba"], code: "AUA", display: "Aruba" },
+      { names: ["turks", "caicos"], code: "PLS", display: "Turks & Caicos" },
+      { names: ["puerto rico", "san juan"], code: "SJU", display: "Puerto Rico" },
+      { names: ["barbados", "barbade"], code: "BGI", display: "Barbados" },
+      { names: ["st. lucia", "saint lucia", "sainte-lucie"], code: "UVF", display: "St. Lucia" },
+      { names: ["martinique"], code: "FDF", display: "Martinique" },
+      { names: ["guadeloupe"], code: "PTP", display: "Guadeloupe" },
+      
+      // Mexico
+      { names: ["mexico", "mexique", "mexico city", "ciudad de mexico"], code: "MEX", display: "Mexico" },
+      { names: ["los cabos", "cabo san lucas", "cabo"], code: "SJD", display: "Los Cabos" },
+      { names: ["puerto vallarta", "vallarta"], code: "PVR", display: "Puerto Vallarta" },
+      { names: ["riviera maya", "playa del carmen"], code: "CUN", display: "Riviera Maya" },
+      
+      // USA
+      { names: ["miami"], code: "MIA", display: "Miami" },
+      { names: ["florida", "floride", "orlando"], code: "MCO", display: "Florida" },
+      { names: ["new york", "nyc", "manhattan"], code: "JFK", display: "New York" },
+      { names: ["las vegas", "vegas"], code: "LAS", display: "Las Vegas" },
+      { names: ["los angeles", "la", "hollywood"], code: "LAX", display: "Los Angeles" },
+      { names: ["hawaii", "hawaï", "honolulu", "maui"], code: "HNL", display: "Hawaii" },
+      { names: ["san francisco"], code: "SFO", display: "San Francisco" },
+      { names: ["boston"], code: "BOS", display: "Boston" },
+      { names: ["chicago"], code: "ORD", display: "Chicago" },
+      { names: ["seattle"], code: "SEA", display: "Seattle" },
+      
+      // Europe
+      { names: ["paris"], code: "CDG", display: "Paris" },
+      { names: ["london", "londres"], code: "LHR", display: "London" },
+      { names: ["rome", "roma"], code: "FCO", display: "Rome" },
+      { names: ["barcelona", "barcelone"], code: "BCN", display: "Barcelona" },
+      { names: ["madrid"], code: "MAD", display: "Madrid" },
+      { names: ["amsterdam"], code: "AMS", display: "Amsterdam" },
+      { names: ["lisbon", "lisbonne"], code: "LIS", display: "Lisbon" },
+      { names: ["portugal"], code: "LIS", display: "Portugal" },
+      { names: ["greece", "grèce", "athens", "athènes", "santorini"], code: "ATH", display: "Greece" },
+      { names: ["italy", "italie", "milan", "venice", "venise", "florence"], code: "FCO", display: "Italy" },
+      { names: ["spain", "espagne"], code: "MAD", display: "Spain" },
+      { names: ["france"], code: "CDG", display: "France" },
+      { names: ["germany", "allemagne", "berlin", "munich"], code: "FRA", display: "Germany" },
+      { names: ["switzerland", "suisse", "zurich", "geneva", "genève"], code: "ZRH", display: "Switzerland" },
+      { names: ["europe"], code: "EUR", display: "Europe" },
+      
+      // Asia
+      { names: ["japan", "japon", "tokyo", "osaka", "kyoto"], code: "NRT", display: "Japan" },
+      { names: ["thailand", "thaïlande", "bangkok", "phuket"], code: "BKK", display: "Thailand" },
+      { names: ["bali", "indonesia", "indonésie"], code: "DPS", display: "Bali" },
+      { names: ["vietnam"], code: "SGN", display: "Vietnam" },
+      { names: ["maldives"], code: "MLE", display: "Maldives" },
+      { names: ["dubai", "dubaï", "emirates", "émirats"], code: "DXB", display: "Dubai" },
+      
+      // South America
+      { names: ["brazil", "brésil", "rio", "são paulo"], code: "GIG", display: "Brazil" },
+      { names: ["argentina", "argentine", "buenos aires"], code: "EZE", display: "Argentina" },
+      { names: ["peru", "pérou", "lima", "machu picchu"], code: "LIM", display: "Peru" },
+      { names: ["colombia", "colombie", "bogota", "cartagena"], code: "BOG", display: "Colombia" },
+      { names: ["costa rica"], code: "SJO", display: "Costa Rica" },
+      
+      // Africa
+      { names: ["morocco", "maroc", "marrakech", "casablanca"], code: "RAK", display: "Morocco" },
+      { names: ["egypt", "égypte", "cairo", "le caire"], code: "CAI", display: "Egypt" },
+      { names: ["south africa", "afrique du sud", "cape town"], code: "CPT", display: "South Africa" },
+      
+      // Oceania
+      { names: ["australia", "australie", "sydney", "melbourne"], code: "SYD", display: "Australia" },
+      { names: ["new zealand", "nouvelle-zélande", "auckland"], code: "AKL", display: "New Zealand" },
+      { names: ["fiji", "fidji"], code: "NAN", display: "Fiji" },
+      { names: ["tahiti", "polynésie", "polynesia"], code: "PPT", display: "Tahiti" },
+      
+      // Canada destinations (from Montreal)
+      { names: ["vancouver"], code: "YVR", display: "Vancouver" },
+      { names: ["toronto"], code: "YYZ", display: "Toronto" },
+      { names: ["calgary"], code: "YYC", display: "Calgary" },
+    ]
+    
     for (const dest of destinations) {
-      if (text.toLowerCase().includes(dest.toLowerCase())) {
-        return dest
+      for (const name of dest.names) {
+        if (textLower.includes(name)) {
+          return { name: dest.display, code: dest.code }
+        }
       }
     }
+    
     return null
   }
   
@@ -179,8 +266,8 @@ function BoardingPassCard({
               
               <div className="text-center">
                 <div className="text-xs text-muted-foreground uppercase">To</div>
-                <div className="font-bold text-lg">{destination ? destination.slice(0, 3).toUpperCase() : "TBD"}</div>
-                <div className="text-xs text-muted-foreground">{destination || "To be determined"}</div>
+                <div className="font-bold text-lg">{destination ? destination.code : "TBD"}</div>
+                <div className="text-xs text-muted-foreground">{destination ? destination.name : "To be determined"}</div>
               </div>
             </div>
           </div>
@@ -257,22 +344,15 @@ export function DashboardPageClient({ leads, activeCalls: initialCalls, stats }:
 
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, index) => {
+          {stats.map((stat) => {
             const Icon = iconMap[stat.icon as keyof typeof iconMap]
-            const colors = [
-              "from-blue-500/10 to-blue-500/5 border-blue-500/20",
-              "from-green-500/10 to-green-500/5 border-green-500/20",
-              "from-purple-500/10 to-purple-500/5 border-purple-500/20",
-              "from-orange-500/10 to-orange-500/5 border-orange-500/20",
-            ]
-            const iconColors = ["text-blue-500", "text-green-500", "text-purple-500", "text-orange-500"]
             
             return (
-              <Card key={stat.title} className={`bg-gradient-to-br ${colors[index]} border overflow-hidden`}>
+              <Card key={stat.title} className="border overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-                  <div className={`h-8 w-8 rounded-lg bg-background/50 flex items-center justify-center`}>
-                    <Icon className={`h-4 w-4 ${iconColors[index]}`} />
+                  <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </CardHeader>
                 <CardContent>
