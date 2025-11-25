@@ -7,8 +7,15 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 
+// Accept serialized user with string dates
+type SerializedUser = Omit<User, "createdAt" | "updatedAt" | "lastLoginAt"> & {
+  createdAt: string
+  updatedAt: string
+  lastLoginAt: string | null
+}
+
 interface PermissionsEditorProps {
-  user: User
+  user: SerializedUser
 }
 
 const permissionLabels: Record<keyof UserPermissions, string> = {
