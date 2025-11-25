@@ -342,3 +342,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function GET() {
+  return NextResponse.json({ ok: true, message: "ElevenLabs webhook endpoint" })
+}
+

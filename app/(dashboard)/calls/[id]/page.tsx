@@ -23,6 +23,10 @@ export default async function CallDetailPage({
     ? call.createdAt 
     : call.createdAt?.toDate?.() || new Date()
 
+  const formattedTranscript = call.transcript
+    ? call.transcript.replace(/ (\?|\!|:|;)/g, "\u00a0$1")
+    : "No transcript available."
+
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
@@ -43,28 +47,23 @@ export default async function CallDetailPage({
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Call Information</CardTitle>
+            <CardTitle>{lead?.name || call.callerName || "Call Information"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <div className="text-sm text-muted-foreground">Caller</div>
-              <div className="font-medium">{call.callerName || "Unknown"}</div>
-            </div>
             <div>
               <div className="text-sm text-muted-foreground">Phone</div>
               <div className="font-medium">{call.callerPhoneNumber}</div>
             </div>
-            {lead && (
-              <div>
-                <div className="text-sm text-muted-foreground">Lead</div>
-                <Link
-                  href={`/leads/${lead.id}`}
-                  className="font-medium text-primary hover:underline"
-                >
-                  {lead.name || "Unknown"}
-                </Link>
-              </div>
-            )}
+            <div>
+              <div className="text-sm text-muted-foreground">Email</div>
+              {lead?.email ? (
+                <a href={`mailto:${lead.email}`} className="font-medium text-primary hover:underline">
+                  {lead.email}
+                </a>
+              ) : (
+                <div className="font-medium text-muted-foreground">Not provided</div>
+              )}
+            </div>
             {call.labels.length > 0 && (
               <div>
                 <div className="text-sm text-muted-foreground">Labels</div>
@@ -101,18 +100,45 @@ export default async function CallDetailPage({
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Full Transcript</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-lg bg-muted p-4 max-h-[600px] overflow-y-auto">
-            <pre className="whitespace-pre-wrap text-sm font-mono">
-              {call.transcript || "No transcript available."}
-            </pre>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Full Transcript</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg border bg-muted/40 p-4 max-h-[480px] overflow-y-auto">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                {formattedTranscript}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Agent Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">Leave any follow-up instructions.</p>
+              <div className="space-y-2 text-sm">
+                <label className="font-medium text-foreground">Price Quoted by agent</label>
+                <input
+                  type="text"
+                  defaultValue={lead?.quotedPrice?.toString() || ""}
+                  className="w-full rounded-md border border-input bg-background p-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder="$0.00"
+                />
+              </div>
+              <textarea
+                className="min-h-[220px] w-full resize-none rounded-lg border border-input bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                placeholder="Add notes..."
+                defaultValue={call.notes || ""}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
