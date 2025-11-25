@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { format } from "date-fns"
-import { Phone, Archive, Trash2, Search, ChevronRight, User } from "lucide-react"
+import { format, formatDistanceToNow } from "date-fns"
+import { Phone, Archive, Trash2, Search, ChevronRight, User, Clock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -191,8 +191,11 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
                 {/* Time & Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <div className="text-right text-xs">
-                    <div className="font-medium">{format(createdAt, "MMM d")}</div>
-                    <div className="text-muted-foreground">{format(createdAt, "h:mm a")}</div>
+                    <div className="font-medium flex items-center gap-1 justify-end">
+                      <Clock className="h-3 w-3" />
+                      {formatDistanceToNow(createdAt, { addSuffix: true })}
+                    </div>
+                    <div className="text-muted-foreground">{format(createdAt, "MMM d, h:mm a")}</div>
                   </div>
                   
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

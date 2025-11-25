@@ -1,11 +1,14 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Call } from "@/types/calls"
 import { Lead } from "@/types/leads"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CallActions } from "@/components/calls/call-actions"
 import { TranscriptViewer } from "@/components/calls/transcript-viewer"
+import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { ArrowLeft, User } from "lucide-react"
@@ -27,7 +30,60 @@ interface CallDetailClientProps {
   formattedTranscript: string
 }
 
-export function CallDetailClient({ call, lead, formattedTranscript }: CallDetailClientProps) {
+export function CallDetailClient({ 
+  call: initialCall, 
+  lead, 
+  formattedTranscript
+}: CallDetailClientProps) {
+  const { toast } = useToast()
+  const { user } = useAuth()
+  const [call, setCall] = useState(initialCall)
+  const [hasAutoAssigned, setHasAutoAssigned] = useState(false)
+
+  // Auto-assign call to current user if unassigned
+  useEffect(() => {
+    const autoAssign = async () => {
+      // Only auto-assign if:
+      // - Call is not already assigned
+      // - We have user info
+      // - We haven't already tried to auto-assign
+      if (call.assignedTo || !user || hasAutoAssigned) {
+        return
+      }
+
+      setHasAutoAssigned(true)
+      
+      const userName = user.displayName || user.email?.split("@")[0] || "Agent"
+
+      try {
+        const response = await fetch(`/api/calls/${call.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            assignedTo: user.uid,
+            assignedToName: userName 
+          }),
+        })
+
+        if (response.ok) {
+          setCall(prev => ({
+            ...prev,
+            assignedTo: user.uid,
+            assignedToName: userName
+          }))
+          toast({
+            title: "Call assigned to you",
+            description: `This call has been automatically assigned to you.`,
+          })
+        }
+      } catch (error) {
+        console.error("Failed to auto-assign call:", error)
+      }
+    }
+
+    autoAssign()
+  }, [call.id, call.assignedTo, user, hasAutoAssigned, toast])
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4">
