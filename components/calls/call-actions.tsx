@@ -9,8 +9,10 @@ import { BanNumberModal } from "@/components/calls/ban-number-modal"
 import { AssignAgentModal } from "@/components/calls/assign-agent-modal"
 import { Ban, Calendar, AlertTriangle, UserPlus } from "lucide-react"
 
+import { SerializedCall } from "@/components/calls/call-detail-client"
+
 interface CallActionsProps {
-  call: Call
+  call: SerializedCall
 }
 
 export function CallActions({ call }: CallActionsProps) {

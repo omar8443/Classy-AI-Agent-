@@ -10,12 +10,13 @@ import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { ArrowLeft, User } from "lucide-react"
 
-type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
+// Serialized types for client components
+export type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
   createdAt: Date
   endedAt: Date | null
 }
 
-type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
+export type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
   createdAt: Date
   updatedAt: Date
 } | null
