@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { format, formatDistanceToNow } from "date-fns"
 import { Phone, Archive, Trash2, Search, ChevronRight, User, Clock } from "lucide-react"
@@ -57,6 +57,11 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
   const [calls, setCalls] = useState(initialCalls)
   const [archivingId, setArchivingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // Sync calls when props change (e.g., after navigation back from detail page)
+  useEffect(() => {
+    setCalls(initialCalls)
+  }, [initialCalls])
 
   const filteredCalls = calls
     .filter((call) => !call.archived)

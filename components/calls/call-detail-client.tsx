@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Call } from "@/types/calls"
 import { Lead } from "@/types/leads"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,7 +12,6 @@ import { TranscriptViewer } from "@/components/calls/transcript-viewer"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { formatDistanceToNow } from "date-fns"
-import Link from "next/link"
 import { ArrowLeft, User, UserPlus, AlertCircle } from "lucide-react"
 
 // Serialized types for client components
@@ -36,10 +36,17 @@ export function CallDetailClient({
   lead, 
   formattedTranscript
 }: CallDetailClientProps) {
+  const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
   const [call, setCall] = useState(initialCall)
   const [isAssigning, setIsAssigning] = useState(false)
+
+  // Navigate back and refresh to update the calls list
+  const handleBack = () => {
+    router.push("/calls")
+    router.refresh()
+  }
 
   // Handle manual assignment
   const handleAssignToMe = async () => {
@@ -110,12 +117,12 @@ export function CallDetailClient({
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
-          <Link
-            href="/calls"
+          <button
+            onClick={handleBack}
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
-          </Link>
+          </button>
           <div>
             <h1 className="text-3xl font-bold">Call Details</h1>
             <p className="text-muted-foreground mt-2">
