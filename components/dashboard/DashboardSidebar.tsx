@@ -10,8 +10,8 @@ import { LayoutDashboard, Phone, Users, LogOut, Plane, UserCog, Settings, Calend
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
-  { href: "/leads", label: "Leads", icon: Users, adminOnly: false },
   { href: "/calls", label: "Calls", icon: Phone, adminOnly: false },
+  { href: "/leads", label: "Leads", icon: Users, adminOnly: false },
   { href: "/reservations", label: "Reservations", icon: CalendarCheck, adminOnly: false },
 ]
 
@@ -27,9 +27,9 @@ export function DashboardSidebar() {
 
   return (
     <div className="flex w-64 flex-col border-r border-border bg-card">
-      <div className="flex h-20 items-center justify-center gap-3 border-b border-border px-6">
-        <Plane className="h-5 w-5 text-primary" />
-        <h1 className="text-lg font-semibold whitespace-nowrap">Voyage Classy Travel</h1>
+      <div className="flex h-[85px] items-center justify-center gap-2 border-b border-border px-4">
+        <Plane className="h-4 w-4 text-primary" />
+        <h1 className="text-lg font-semibold whitespace-nowrap">Voyages Classy Travel</h1>
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {

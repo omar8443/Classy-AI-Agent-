@@ -10,13 +10,13 @@ export function DashboardTopBar() {
     weekday: "long",
     month: "long",
     day: "numeric",
+    year: "numeric",
   }).format(new Date())
 
   return (
-    <div className="flex items-center justify-between border-b border-border bg-card px-8 py-4">
-      <div>
-        <h2 className="text-xl font-semibold">Classy AI</h2>
-        <p className="text-sm text-muted-foreground">{formattedDate}</p>
+    <div className="flex items-center justify-between border-b border-border bg-card pr-8 pl-4 h-[85px]">
+      <div className="flex-1">
+        <p className="text-lg font-semibold">{formattedDate}</p>
       </div>
       <div className="flex items-center gap-3">
         <ThemeToggle />

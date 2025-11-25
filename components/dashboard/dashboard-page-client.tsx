@@ -74,13 +74,29 @@ function BoardingPassCard({
   
   const createdAt = new Date(call.createdAt)
   
-  // Extract destination from summary or transcript with comprehensive list
+  // Extract destination from summary only
   const extractDestination = (): { name: string; code: string } | null => {
-    // Prioritize summary, then fall back to transcript
+    // Only use summary for destination extraction
     const summaryText = call.summary || ""
-    const transcriptText = call.transcript || ""
-    const text = summaryText + " " + transcriptText
-    const textLower = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents for better matching
+    if (!summaryText) return null
+    
+    const textLower = summaryText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents for better matching
+    
+    // Look for destination keywords to narrow down the search
+    const destinationPatterns = [
+      /(?:to|destination|going to|traveling to|visiting|trip to|vacation to|fly to|flying to|travel to)[:;\s]+([^\n\r.,]+)/gi,
+      /(?:interested in|looking for|wants to go to|wants to visit)[:;\s]+([^\n\r.,]+)/gi,
+    ]
+    
+    let destinationHints: string[] = []
+    for (const pattern of destinationPatterns) {
+      const matches = summaryText.matchAll(pattern)
+      for (const match of matches) {
+        if (match[1]) {
+          destinationHints.push(match[1].trim().toLowerCase())
+        }
+      }
+    }
     
     // Comprehensive list of destinations with their airport codes
     const destinations: Array<{ names: string[]; code: string; display: string }> = [
@@ -111,7 +127,7 @@ function BoardingPassCard({
       { names: ["new york", "nyc", "manhattan"], code: "JFK", display: "New York" },
       { names: ["las vegas", "vegas"], code: "LAS", display: "Las Vegas" },
       { names: ["los angeles", "hollywood"], code: "LAX", display: "Los Angeles" },
-      { names: ["hawaii", "honolulu", "maui"], code: "HNL", display: "Hawaii" },
+      { names: ["hawaii", "hawaï", "honolulu", "maui"], code: "HNL", display: "Hawaii" },
       { names: ["san francisco"], code: "SFO", display: "San Francisco" },
       { names: ["boston"], code: "BOS", display: "Boston" },
       { names: ["chicago"], code: "ORD", display: "Chicago" },
@@ -166,11 +182,29 @@ function BoardingPassCard({
       { names: ["calgary"], code: "YYC", display: "Calgary" },
     ]
     
+    // First, try to find destination in the hints (more accurate)
+    if (destinationHints.length > 0) {
+      for (const hint of destinationHints) {
+        const hintNormalized = hint.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        for (const dest of destinations) {
+          for (const name of dest.names) {
+            const normalizedName = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            if (hintNormalized.includes(normalizedName)) {
+              return { name: dest.display, code: dest.code }
+            }
+          }
+        }
+      }
+    }
+    
+    // Fallback: search entire summary (less accurate, but better than nothing)
     for (const dest of destinations) {
       for (const name of dest.names) {
         // Normalize the search term as well
         const normalizedName = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        if (textLower.includes(normalizedName)) {
+        // Use word boundaries to avoid partial matches
+        const wordBoundaryRegex = new RegExp(`\\b${normalizedName}\\b`, 'i')
+        if (wordBoundaryRegex.test(textLower)) {
           return { name: dest.display, code: dest.code }
         }
       }
@@ -219,16 +253,17 @@ function BoardingPassCard({
   
   const isAssigned = !!call.assignedTo
   
+  // Debug: log the summary and detected destination
+  console.log("Call summary:", call.summary?.substring(0, 100))
+  console.log("Detected destination:", destination)
+  
   return (
     <Link href={`/calls/${call.id}`} className="block group">
-      <div 
-        className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all hover:shadow-lg ${
-          isAssigned 
-            ? "border-green-500/30 hover:border-green-500/50" 
-            : "border-orange-500/30 hover:border-orange-500/50"
-        }`} 
-        style={{ backgroundColor: "#ffffff" }}
-      >
+      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all hover:shadow-lg ${
+        isAssigned 
+          ? "border-green-500/30 hover:border-green-500/50" 
+          : "border-orange-500/30 hover:border-orange-500/50"
+      }`} style={{ backgroundColor: "white" }}>
         {/* Ticket perforation effect */}
         <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${
           isAssigned ? "from-green-500/20 via-green-500 to-green-500/20" : "from-orange-500/20 via-orange-500 to-orange-500/20"
@@ -260,19 +295,21 @@ function BoardingPassCard({
             
             {/* Route visualization */}
             <div className="mt-4 flex items-center gap-3">
-              <div className="text-center">
+              <div className="text-center min-w-[70px]">
                 <div className="text-xs text-muted-foreground uppercase">From</div>
                 <div className="font-bold text-lg">MTL</div>
                 <div className="text-xs text-muted-foreground">Montreal</div>
               </div>
               
-              <div className="flex-1 flex items-center gap-2 px-2">
+              <div className="flex-1 flex items-center justify-center px-2">
                 <div className="h-px flex-1 bg-gradient-to-r from-muted-foreground/40 to-transparent" />
-                <Plane className="h-5 w-5 text-primary rotate-90 group-hover:translate-x-1 transition-transform" />
+                <div className="flex items-center justify-center min-w-[24px]">
+                  <Plane className="h-5 w-5 text-primary rotate-[340deg] group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" />
+                </div>
                 <div className="h-px flex-1 bg-gradient-to-l from-muted-foreground/40 to-transparent" />
               </div>
               
-              <div className="text-center">
+              <div className="text-center min-w-[70px]">
                 <div className="text-xs text-muted-foreground uppercase">To</div>
                 <div className="font-bold text-lg">{destination ? destination.code : "TBD"}</div>
                 <div className="text-xs text-muted-foreground">{destination ? destination.name : "To be determined"}</div>
@@ -334,18 +371,15 @@ export function DashboardPageClient({ leads, activeCalls: initialCalls, stats }:
   return (
     <PageWrapper>
       <div className="space-y-8">
-        {/* Header with gradient */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 border">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="relative">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Plane className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">Dashboard</h1>
-                <p className="text-muted-foreground">Welcome back to Voyage Classy Travel</p>
-              </div>
+        {/* Header */}
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-card p-6 border shadow-sm">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Plane className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Dashboard</h1>
+              <p className="text-muted-foreground">Welcome back to Voyages Classy Travel</p>
             </div>
           </div>
         </div>

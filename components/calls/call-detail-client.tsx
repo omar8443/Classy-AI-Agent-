@@ -44,6 +44,26 @@ export function CallDetailClient({
   const [notes, setNotes] = useState(initialCall.notes || "")
   const [isSavingNotes, setIsSavingNotes] = useState(false)
 
+  // Parse summary into bullet points
+  const parseSummaryBullets = (summary: string | undefined): string[] => {
+    if (!summary) return []
+    
+    // Split by common bullet point delimiters or line breaks
+    const lines = summary
+      .split(/[\n\r]+/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .map(line => {
+        // Remove existing bullet characters
+        return line.replace(/^[•\-\*]\s*/, "")
+      })
+      .filter(line => line.length > 0)
+    
+    return lines
+  }
+
+  const summaryBullets = parseSummaryBullets(call.summary)
+
   // Navigate back and refresh to update the calls list
   const handleBack = () => {
     router.push("/calls")
@@ -211,9 +231,20 @@ export function CallDetailClient({
             <CardTitle className="text-lg">Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {call.summary || "No summary available."}
-            </p>
+            {summaryBullets.length > 0 ? (
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                {summaryBullets.map((bullet, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <span className="text-primary mt-0.5 font-bold">•</span>
+                    <span className="flex-1 leading-relaxed">{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                No summary available.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

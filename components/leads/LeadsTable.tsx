@@ -75,8 +75,8 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
               >
                 {/* Avatar */}
                 <div className="flex-shrink-0">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-lg">
-                    {lead.name ? lead.name.charAt(0).toUpperCase() : "?"}
+                  <div className="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                    <Phone className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                   </div>
                 </div>
 
@@ -89,7 +89,6 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
                   </div>
                   <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <Phone className="h-3.5 w-3.5" />
                       {formatPhoneNumber(lead.phoneNumber)}
                     </span>
                     {lead.email && (

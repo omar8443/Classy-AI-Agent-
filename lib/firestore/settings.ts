@@ -60,7 +60,7 @@ export async function initializeSettings(userId: string): Promise<void> {
 
   const defaultSettings = AppSettingsSchema.parse({
     company: {
-      name: "Voyage Classy Travel",
+      name: "Voyages Classy Travel",
       logo: null,
       primaryColor: "#0EA5E9",
       contactEmail: "contact@voyageclassy.com",

@@ -13,7 +13,7 @@ export function CompanySettings() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [settings, setSettings] = useState({
-    name: "Voyage Classy Travel",
+    name: "Voyages Classy Travel",
     primaryColor: "#0EA5E9",
     contactEmail: "contact@voyageclassy.com",
     contactPhone: "+1 514-555-0100",
