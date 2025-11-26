@@ -28,7 +28,6 @@ export function UserForm({ user }: UserFormProps) {
     email: user.email,
     phone: user.phone || "",
     role: user.role,
-    status: user.status,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,23 +109,6 @@ export function UserForm({ user }: UserFormProps) {
             <SelectItem value="manager">Manager</SelectItem>
             <SelectItem value="agent">Agent</SelectItem>
             <SelectItem value="viewer">Viewer</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="status">Status</Label>
-        <Select
-          value={formData.status}
-          onValueChange={(value) => setFormData({ ...formData, status: value as any })}
-        >
-          <SelectTrigger id="status">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
           </SelectContent>
         </Select>
       </div>
