@@ -1,11 +1,12 @@
 import { getFirebaseAdmin } from "@/lib/firebaseAdmin"
 import { Lead, LeadStatus } from "@/types/leads"
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore"
 
 export async function getLeads(): Promise<Lead[]> {
   const { db } = getFirebaseAdmin()
   const snapshot = await db.collection("leads").orderBy("createdAt", "desc").get()
   
-  return snapshot.docs.map((doc) => {
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => {
     const data = doc.data()
     return {
       id: doc.id,

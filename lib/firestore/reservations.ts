@@ -1,5 +1,6 @@
 import { getFirebaseAdmin } from "@/lib/firebaseAdmin"
 import { Reservation, ReservationSchema, generateReservationId } from "@/types/reservation"
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore"
 
 export async function getReservations(limit?: number): Promise<Reservation[]> {
   const { db } = getFirebaseAdmin()
@@ -11,7 +12,7 @@ export async function getReservations(limit?: number): Promise<Reservation[]> {
   
   const snapshot = await query.get()
   
-  return snapshot.docs.map((doc) => {
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => {
     const data = doc.data()
     return {
       id: doc.id,
@@ -77,7 +78,7 @@ export async function getReservationsByLeadId(leadId: string): Promise<Reservati
     .orderBy("createdAt", "desc")
     .get()
   
-  return snapshot.docs.map((doc) => {
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => {
     const data = doc.data()
     return {
       id: doc.id,

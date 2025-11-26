@@ -1,5 +1,6 @@
 import { getFirebaseAdmin } from "@/lib/firebaseAdmin"
 import { BannedNumber, BannedNumberSchema } from "@/types/banned-numbers"
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore"
 
 /**
  * Normalize phone number (remove non-digits)
@@ -57,7 +58,7 @@ export async function getBannedNumbers(): Promise<BannedNumber[]> {
   const { db } = getFirebaseAdmin()
   const snapshot = await db.collection("bannedNumbers").orderBy("createdAt", "desc").get()
 
-  return snapshot.docs.map((doc) => ({
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => ({
     id: doc.id,
     ...doc.data(),
     createdAt: doc.data().createdAt?.toDate() || new Date(),

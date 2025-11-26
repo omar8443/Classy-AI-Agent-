@@ -1,5 +1,6 @@
 import { getFirebaseAdmin } from "@/lib/firebaseAdmin"
 import { Call } from "@/types/calls"
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore"
 
 export async function getCalls(limit?: number): Promise<Call[]> {
   const { db } = getFirebaseAdmin()
@@ -11,7 +12,7 @@ export async function getCalls(limit?: number): Promise<Call[]> {
   
   const snapshot = await query.get()
   
-  return snapshot.docs.map((doc) => {
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => {
     const data = doc.data()
     return {
       id: doc.id,
@@ -31,7 +32,7 @@ export async function getCallsByLeadId(leadId: string): Promise<Call[]> {
     .orderBy("createdAt", "desc")
     .get()
   
-  return snapshot.docs.map((doc) => {
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => {
     const data = doc.data()
     return {
       id: doc.id,
@@ -76,7 +77,7 @@ export async function getAssignedCalls(userId?: string, isAdmin?: boolean): Prom
     
     const snapshot = await query.get()
     
-    return snapshot.docs.map((doc) => {
+    return snapshot.docs.map((doc: QueryDocumentSnapshot) => {
       const data = doc.data()
       return {
         id: doc.id,
@@ -95,11 +96,11 @@ export async function getAssignedCalls(userId?: string, isAdmin?: boolean): Prom
     
     // Filter for calls that have an assignedTo value
     return snapshot.docs
-      .filter((doc) => {
+      .filter((doc: QueryDocumentSnapshot) => {
         const data = doc.data()
         return data.assignedTo && data.assignedTo !== null && data.assignedTo !== ""
       })
-      .map((doc) => {
+      .map((doc: QueryDocumentSnapshot) => {
         const data = doc.data()
         return {
           id: doc.id,

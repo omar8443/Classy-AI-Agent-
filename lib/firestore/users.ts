@@ -1,5 +1,6 @@
 import { getFirebaseAdmin } from "@/lib/firebaseAdmin"
 import { User, UserSchema, UserRole, defaultPermissions } from "@/types/users"
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore"
 
 /**
  * Create a new user document in Firestore with custom claims
@@ -73,7 +74,7 @@ export async function getUsers(): Promise<User[]> {
   const { db } = getFirebaseAdmin()
   const snapshot = await db.collection("users").orderBy("createdAt", "desc").get()
 
-  return snapshot.docs.map((doc) => ({
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => ({
     id: doc.id,
     ...doc.data(),
   })) as User[]
