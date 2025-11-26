@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { format, formatDistanceToNow } from "date-fns"
-import { User, Search, Phone, Mail, ChevronRight } from "lucide-react"
+import { User, Search, Phone, Mail, ChevronRight, Trash2 } from "lucide-react"
 
 import { Lead } from "@/types/leads"
 import { Input } from "@/components/ui/input"
+import { useToast } from "@/components/ui/use-toast"
 
 type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
   createdAt: string
@@ -35,8 +36,39 @@ function formatPhoneNumber(phone: string): string {
 export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
+  const [leads, setLeads] = useState(initialLeads)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { toast } = useToast()
 
-  const filteredLeads = initialLeads.filter((lead) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!confirm("Delete this lead permanently? This action cannot be undone.")) {
+      return
+    }
+
+    setDeletingId(id)
+    try {
+      const response = await fetch(`/api/leads/${id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to delete lead")
+      }
+
+      setLeads((prev) => prev.filter((lead) => lead.id !== id))
+      toast({ title: "Lead deleted", description: "The lead has been removed." })
+    } catch (error) {
+      console.error(error)
+      toast({ title: "Delete failed", description: "Please try again.", variant: "destructive" })
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const filteredLeads = leads.filter((lead) => {
     const normalizedQuery = searchQuery.toLowerCase()
     return (
       searchQuery === "" ||
@@ -120,6 +152,15 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
                       Client since
                     </div>
                   </div>
+                  
+                  {/* Delete button */}
+                  <button
+                    className="opacity-0 group-hover:opacity-100 w-8 h-8 rounded-lg bg-neutral-100 hover:bg-red-50 flex items-center justify-center text-neutral-400 hover:text-red-500 transition-all flex-shrink-0"
+                    disabled={deletingId === lead.id}
+                    onClick={(e) => handleDelete(lead.id, e)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                   
                   <ChevronRight className="h-5 w-5 text-neutral-400 group-hover:text-neutral-900 transition-colors" />
                 </div>

@@ -3,8 +3,9 @@
 import { useState } from "react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
-import { Trash2 } from "lucide-react"
+import { Trash2, CheckSquare, Square } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { Button } from "@/components/ui/button"
 
 interface SerializedCall {
   id: string
@@ -47,7 +48,55 @@ function getInitials(name: string | null): string {
 export function RecentCallsList({ initialCalls }: RecentCallsListProps) {
   const [calls, setCalls] = useState(initialCalls)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const { toast } = useToast()
+
+  const handleSelectOne = (id: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    setSelectedIds(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) {
+        newSet.delete(id)
+      } else {
+        newSet.add(id)
+      }
+      return newSet
+    })
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return
+    
+    if (!confirm(`Delete ${selectedIds.size} selected call(s) permanently?`)) {
+      return
+    }
+
+    const idsToDelete = Array.from(selectedIds)
+    
+    try {
+      await Promise.all(
+        idsToDelete.map(id =>
+          fetch(`/api/calls/${id}`, { method: "DELETE" })
+        )
+      )
+
+      setCalls(prev => prev.filter(call => !selectedIds.has(call.id)))
+      setSelectedIds(new Set())
+      toast({ 
+        title: "Calls deleted", 
+        description: `${idsToDelete.length} call(s) have been removed.` 
+      })
+    } catch (error) {
+      console.error(error)
+      toast({ 
+        title: "Delete failed", 
+        description: "Please try again.", 
+        variant: "destructive" 
+      })
+    }
+  }
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.preventDefault()
@@ -87,18 +136,60 @@ export function RecentCallsList({ initialCalls }: RecentCallsListProps) {
 
   return (
     <div className="space-y-3">
+      {/* Select All Controls */}
+      <div className="flex items-center justify-between px-2 py-2 bg-white rounded-xl border border-neutral-100">
+        <button
+          onClick={handleSelectAll}
+          className="flex items-center gap-2 text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+        >
+          {allSelected ? (
+            <CheckSquare className="w-5 h-5 text-neutral-900" />
+          ) : (
+            <Square className="w-5 h-5 text-neutral-400" />
+          )}
+          <span>{allSelected ? "Deselect All" : "Select All"}</span>
+        </button>
+        
+        {selectedIds.size > 0 && (
+          <Button
+            onClick={handleDeleteSelected}
+            variant="destructive"
+            size="sm"
+            className="h-8"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete ({selectedIds.size})
+          </Button>
+        )}
+      </div>
+
       {calls.map((call) => {
         const createdAt = new Date(call.createdAt)
         const preview =
           call.summary || (call.transcript ? `${call.transcript.slice(0, 120)}...` : "Awaiting transcript")
+        const isSelected = selectedIds.has(call.id)
         
         return (
           <Link
             key={call.id}
             href={`/calls/${call.id}`}
-            className="group flex items-start justify-between px-5 py-4 bg-white border border-neutral-100 rounded-xl hover:border-neutral-200 hover:shadow-sm transition-all cursor-pointer"
+            className={`group flex items-start justify-between px-5 py-4 bg-white border rounded-xl hover:border-neutral-200 hover:shadow-sm transition-all cursor-pointer ${
+              isSelected ? "border-neutral-900 bg-neutral-50" : "border-neutral-100"
+            }`}
           >
             <div className="flex items-start gap-4 flex-1 min-w-0">
+              {/* Checkbox */}
+              <button
+                onClick={(e) => handleSelectOne(call.id, e)}
+                className="mt-2 flex-shrink-0"
+              >
+                {isSelected ? (
+                  <CheckSquare className="w-5 h-5 text-neutral-900" />
+                ) : (
+                  <Square className="w-5 h-5 text-neutral-400 group-hover:text-neutral-600" />
+                )}
+              </button>
+
               {/* Avatar circle */}
               <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-sm font-medium text-neutral-600 flex-shrink-0">
                 {getInitials(call.callerName)}

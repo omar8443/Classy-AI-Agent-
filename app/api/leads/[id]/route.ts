@@ -54,3 +54,24 @@ export async function PATCH(
   }
 }
 
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { db } = getFirebaseAdmin()
+    await db.collection("leads").doc(params.id).delete()
+
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error("Error deleting lead:", error)
+    return NextResponse.json(
+      {
+        ok: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    )
+  }
+}
+
