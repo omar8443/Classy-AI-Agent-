@@ -33,7 +33,7 @@ export function DashboardTopBar() {
   return (
     <div className="flex items-center justify-between border-b border-border bg-card/50 backdrop-blur-sm px-6 py-3.5">
       <div>
-        <h2 className="text-lg font-bold">Classy AI</h2>
+        <h2 className="text-lg font-bold">Voyages Classy Travel AI</h2>
         <p className="text-xs text-muted-foreground">{formattedDate}</p>
       </div>
       <div className="flex items-center gap-4">

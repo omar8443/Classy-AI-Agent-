@@ -46,8 +46,8 @@ export function DashboardSidebar() {
   return (
     <div className="flex w-64 flex-col border-r border-border bg-card/50 backdrop-blur-sm">
       <div className="flex h-[72px] items-center justify-center gap-2 border-b border-border px-6">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Plane className="h-5 w-5 text-primary" />
+        <div className="p-2 rounded-lg bg-blue-500/10">
+          <Plane className="h-5 w-5 text-blue-500" />
         </div>
         <h1 className="text-base font-bold whitespace-nowrap">Voyages Classy</h1>
       </div>

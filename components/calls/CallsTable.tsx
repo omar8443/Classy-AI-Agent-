@@ -169,9 +169,9 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
                 {/* Avatar */}
                 <div className="flex-shrink-0">
                   <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-colors ${
-                    isUnassigned ? "bg-orange-100 dark:bg-orange-900/30" : "bg-primary/10"
+                    isUnassigned ? "bg-orange-100 dark:bg-orange-900/30" : "bg-muted"
                   }`}>
-                    <Phone className={`h-4 w-4 ${isUnassigned ? "text-orange-600 dark:text-orange-400" : "text-primary"}`} />
+                    <Phone className={`h-4 w-4 ${isUnassigned ? "text-orange-600 dark:text-orange-400" : "text-foreground"}`} />
                   </div>
                 </div>
 
