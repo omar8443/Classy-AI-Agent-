@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns"
-import { Phone, TrendingUp, Users, Clock } from "lucide-react"
+import { Phone, Users, Clock } from "lucide-react"
 
 import { getCalls } from "@/lib/firestore/calls"
 import { getLeads } from "@/lib/firestore/leads"
@@ -47,8 +47,7 @@ export default async function DashboardPage() {
     return (createdAt || new Date()) >= weekAgo
   }).length
   const totalCalls = activeCalls.length
-  const bookedLeads = leads.filter((lead) => lead.status === "booked").length
-  const conversionRate = totalLeads > 0 ? ((bookedLeads / totalLeads) * 100).toFixed(1) : "0"
+  const unassignedCalls = activeCalls.filter((call) => !call.assignedTo).length
 
   const stats = [
     {
@@ -58,16 +57,10 @@ export default async function DashboardPage() {
       icon: Users,
     },
     {
-      title: "Total Calls",
-      value: totalCalls.toString(),
-      description: "All time",
+      title: "Unassigned Calls",
+      value: unassignedCalls.toString(),
+      description: `${totalCalls} total calls`,
       icon: Phone,
-    },
-    {
-      title: "Conversion Rate",
-      value: `${conversionRate}%`,
-      description: `${bookedLeads} booked`,
-      icon: TrendingUp,
     },
     {
       title: "Recent Activity",
@@ -94,7 +87,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {stats.map((stat) => {
             const Icon = stat.icon
             return (
