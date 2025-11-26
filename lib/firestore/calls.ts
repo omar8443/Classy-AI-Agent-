@@ -116,3 +116,30 @@ export async function getAssignedCalls(userId?: string, isAdmin?: boolean): Prom
   }
 }
 
+export async function getUnassignedCalls(): Promise<Call[]> {
+  const { db } = getFirebaseAdmin()
+  
+  // Get all calls and filter in-memory for unassigned ones
+  const query = db.collection("calls")
+    .orderBy("createdAt", "desc") as any
+  
+  const snapshot = await query.get()
+  
+  // Filter for calls that don't have an assignedTo value
+  return snapshot.docs
+    .filter((doc: QueryDocumentSnapshot) => {
+      const data = doc.data()
+      return !data.assignedTo || data.assignedTo === null || data.assignedTo === ""
+    })
+    .map((doc: QueryDocumentSnapshot) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        endedAt: data.endedAt?.toDate() || null,
+        archived: data.archived ?? false,
+      }
+    }) as Call[]
+}
+
