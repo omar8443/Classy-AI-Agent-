@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { usePermissions } from "@/lib/hooks/usePermissions"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Phone, Users, LogOut, Plane, UserCog, Settings, CalendarCheck, ClipboardCheck, UserPlus } from "lucide-react"
+import { LayoutDashboard, Phone, Users, LogOut, Plane, UserCog, Settings, CalendarCheck, ClipboardCheck, UserPlus, UserCircle } from "lucide-react"
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/agent-requested", label: "Assigned to Me", icon: ClipboardCheck, adminOnly: false },
   { href: "/leads", label: "Leads", icon: Users, adminOnly: false },
   { href: "/reservations", label: "Reservations", icon: CalendarCheck, adminOnly: false },
+  { href: "/profile", label: "Profile", icon: UserCircle, adminOnly: false },
 ]
 
 const adminNavItems = [
