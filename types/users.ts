@@ -41,10 +41,8 @@ export interface User {
   permissions: UserPermissions
   avatar?: string | null
   phone?: string | null
-  status: "active" | "inactive" | "suspended"
   stats: UserStats
   preferences: UserPreferences
-  lastLoginAt?: Date | FirebaseFirestore.Timestamp | null
   createdAt: Date | FirebaseFirestore.Timestamp
   updatedAt: Date | FirebaseFirestore.Timestamp
 }
@@ -90,7 +88,6 @@ export const UserSchema = z.object({
   permissions: UserPermissionsSchema,
   avatar: z.string().url().nullable().optional(),
   phone: z.string().nullable().optional(),
-  status: z.enum(["active", "inactive", "suspended"]).default("active"),
   stats: UserStatsSchema.default({
     totalCalls: 0,
     totalReservations: 0,
@@ -107,7 +104,6 @@ export const UserSchema = z.object({
       newReservation: true,
     },
   }),
-  lastLoginAt: z.date().nullable().optional(),
 })
 
 // Default permissions by role

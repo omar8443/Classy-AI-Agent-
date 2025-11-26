@@ -10,7 +10,6 @@ export default async function UsersPage() {
   // Deep serialize to plain JSON objects
   const serializedUsers = JSON.parse(JSON.stringify(users))
 
-  const activeUsers = serializedUsers.filter((u: any) => u.status === "active").length
   const adminCount = serializedUsers.filter((u: any) => u.role === "admin").length
   const agentCount = serializedUsers.filter((u: any) => u.role === "agent").length
   const managerCount = serializedUsers.filter((u: any) => u.role === "manager").length
@@ -18,7 +17,6 @@ export default async function UsersPage() {
   return (
     <UsersPageClient
       users={serializedUsers}
-      activeUsers={activeUsers}
       adminCount={adminCount}
       managerCount={managerCount}
       agentCount={agentCount}

@@ -13,18 +13,16 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 // Client-safe user type with serialized dates
-type SerializedUser = Omit<User, "createdAt" | "updatedAt" | "lastLoginAt"> & {
+type SerializedUser = Omit<User, "createdAt" | "updatedAt"> & {
   createdAt: string
   updatedAt: string
-  lastLoginAt: string | null
 }
 
 interface UserDetailClientProps {
   user: SerializedUser
-  lastLogin: string | null
 }
 
-export function UserDetailClient({ user, lastLogin }: UserDetailClientProps) {
+export function UserDetailClient({ user }: UserDetailClientProps) {
   return (
     <AdminGuard>
       <PageWrapper>
@@ -74,10 +72,6 @@ export function UserDetailClient({ user, lastLogin }: UserDetailClientProps) {
                     <Badge className="mt-1">{user.role}</Badge>
                   </div>
                   <div>
-                    <div className="text-sm text-muted-foreground">Status</div>
-                    <Badge className="mt-1">{user.status}</Badge>
-                  </div>
-                  <div>
                     <div className="text-sm text-muted-foreground">Email</div>
                     <div className="font-medium">{user.email}</div>
                   </div>
@@ -87,12 +81,6 @@ export function UserDetailClient({ user, lastLogin }: UserDetailClientProps) {
                       <div className="font-medium">{user.phone}</div>
                     </div>
                   )}
-                  <div>
-                    <div className="text-sm text-muted-foreground">Last Login</div>
-                    <div className="font-medium">
-                      {lastLogin ? formatDistanceToNow(new Date(lastLogin), { addSuffix: true }) : "Never"}
-                    </div>
-                  </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Created</div>
                     <div className="font-medium">

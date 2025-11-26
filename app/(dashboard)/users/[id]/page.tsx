@@ -18,8 +18,7 @@ export default async function UserDetailPage({
 
   // Deep serialize to plain JSON objects
   const serializedUser = JSON.parse(JSON.stringify(user))
-  const lastLogin = serializedUser.lastLoginAt
 
-  return <UserDetailClient user={serializedUser} lastLogin={lastLogin} />
+  return <UserDetailClient user={serializedUser} />
 }
 

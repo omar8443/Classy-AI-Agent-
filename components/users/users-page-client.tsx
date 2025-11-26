@@ -10,15 +10,13 @@ import { Button } from "@/components/ui/button"
 import { UserPlus } from "lucide-react"
 
 // Client-safe user type with serialized dates
-type SerializedUser = Omit<User, "createdAt" | "updatedAt" | "lastLoginAt"> & {
+type SerializedUser = Omit<User, "createdAt" | "updatedAt"> & {
   createdAt: string
   updatedAt: string
-  lastLoginAt: string | null
 }
 
 interface UsersPageClientProps {
   users: SerializedUser[]
-  activeUsers: number
   adminCount: number
   managerCount: number
   agentCount: number
@@ -26,7 +24,6 @@ interface UsersPageClientProps {
 
 export function UsersPageClient({
   users,
-  activeUsers,
   adminCount,
   managerCount,
   agentCount,
@@ -57,7 +54,6 @@ export function UsersPageClient({
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{users.length}</div>
-                <p className="text-xs text-muted-foreground">{activeUsers} active</p>
               </CardContent>
             </Card>
 

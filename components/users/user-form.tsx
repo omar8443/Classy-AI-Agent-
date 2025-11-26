@@ -10,10 +10,9 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 
 // Accept serialized user with string dates
-type SerializedUser = Omit<User, "createdAt" | "updatedAt" | "lastLoginAt"> & {
+type SerializedUser = Omit<User, "createdAt" | "updatedAt"> & {
   createdAt: string
   updatedAt: string
-  lastLoginAt: string | null
 }
 
 interface UserFormProps {
