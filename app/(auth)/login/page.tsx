@@ -45,8 +45,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-white p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold">Classy AI</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardTitle className="text-3xl font-bold">Admin Login</CardTitle>
+          <CardDescription>Access your dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           {authError && (
@@ -74,6 +74,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

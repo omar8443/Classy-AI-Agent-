@@ -57,7 +57,7 @@ export default function RegisterPage() {
       router.push("/")
       toast({
         title: "Account created!",
-        description: "Welcome to Classy AI Assistant Dashboard.",
+        description: "Welcome to the admin dashboard.",
       })
     } catch (error) {
       console.error("Registration error:", error)
@@ -75,8 +75,8 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-white p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold">Classy AI</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
+          <CardTitle className="text-3xl font-bold">Admin Registration</CardTitle>
+          <CardDescription>Create your admin account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -109,6 +109,7 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type="password"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -120,6 +121,7 @@ export default function RegisterPage() {
               <Input
                 id="confirmPassword"
                 type="password"
+                placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
