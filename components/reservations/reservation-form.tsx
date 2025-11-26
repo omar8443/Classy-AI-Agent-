@@ -156,7 +156,7 @@ export function ReservationForm() {
               ) : (
                 leads.map((lead) => (
                   <SelectItem key={lead.id} value={lead.id}>
-                    {lead.name} - {lead.phone}
+                    {lead.name} - {lead.phoneNumber}
                   </SelectItem>
                 ))
               )}
