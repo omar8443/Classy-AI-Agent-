@@ -27,6 +27,22 @@ export function DashboardSidebar() {
   const { signOut } = useAuth()
   const { isAdmin } = usePermissions()
 
+  const isNavItemActive = (itemHref: string) => {
+    // Exact match
+    if (pathname === itemHref) return true
+    
+    // Special case for root
+    if (itemHref === "/") return false
+    
+    // Special case for /calls - only match /calls/[id] but not /calls/unassigned
+    if (itemHref === "/calls") {
+      return pathname.startsWith("/calls/") && !pathname.startsWith("/calls/unassigned")
+    }
+    
+    // For other routes, match if pathname starts with href
+    return pathname.startsWith(itemHref)
+  }
+
   return (
     <div className="flex w-64 flex-col border-r border-border bg-card">
       <div className="flex h-[85px] items-center justify-center gap-2 border-b border-border px-4">
@@ -36,7 +52,7 @@ export function DashboardSidebar() {
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+          const isActive = isNavItemActive(item.href)
           return (
             <Link
               key={item.href}
@@ -61,7 +77,7 @@ export function DashboardSidebar() {
             </div>
             {adminNavItems.map((item) => {
               const Icon = item.icon
-              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+              const isActive = isNavItemActive(item.href)
               return (
                 <Link
                   key={item.href}
