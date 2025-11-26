@@ -156,7 +156,7 @@ export function UsersTable({ users: initialUsers }: UsersTableProps) {
                   <tr
                     key={user.id}
                     onClick={() => router.push(`/users/${user.id}`)}
-                    className="cursor-pointer border-b transition-colors hover:bg-muted/50"
+                    className="cursor-pointer border-b transition-colors hover:bg-muted/50 select-none"
                   >
                     <td className="p-4 font-medium">{user.name}</td>
                     <td className="p-4 text-muted-foreground">{user.email}</td>

@@ -24,7 +24,6 @@ export async function createUserDocument(
       totalCalls: 0,
       totalReservations: 0,
       totalRevenue: 0,
-      conversionRate: 0,
       avgCallDuration: 0,
     },
     preferences: {

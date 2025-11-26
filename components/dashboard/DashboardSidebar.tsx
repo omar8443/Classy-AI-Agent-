@@ -6,11 +6,12 @@ import { useAuth } from "@/lib/hooks/useAuth"
 import { usePermissions } from "@/lib/hooks/usePermissions"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Phone, Users, LogOut, Plane, UserCog, Settings, CalendarCheck } from "lucide-react"
+import { LayoutDashboard, Phone, Users, LogOut, Plane, UserCog, Settings, CalendarCheck, ClipboardCheck } from "lucide-react"
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
   { href: "/calls", label: "Calls", icon: Phone, adminOnly: false },
+  { href: "/agent-requested", label: "Assigned to Me", icon: ClipboardCheck, adminOnly: false },
   { href: "/leads", label: "Leads", icon: Users, adminOnly: false },
   { href: "/reservations", label: "Reservations", icon: CalendarCheck, adminOnly: false },
 ]

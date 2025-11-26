@@ -14,6 +14,21 @@ import { useAuth } from "@/lib/hooks/useAuth"
 import { formatDistanceToNow } from "date-fns"
 import { ArrowLeft, User, UserPlus, AlertCircle } from "lucide-react"
 
+function formatPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "")
+  if (digits.length === 10) {
+    return `+1 ${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  if (digits.length === 11 && digits[0] === "1") {
+    return `+1 ${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`
+  }
+  if (digits.length >= 10) {
+    const last10 = digits.slice(-10)
+    return `+1 ${last10.slice(0, 3)}-${last10.slice(3, 6)}-${last10.slice(6)}`
+  }
+  return phone
+}
+
 // Serialized types for client components
 export type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
   createdAt: string
@@ -187,7 +202,7 @@ export function CallDetailClient({
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Phone</span>
-              <span className="font-medium">{call.callerPhoneNumber}</span>
+              <span className="font-medium">{formatPhoneNumber(call.callerPhoneNumber)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Email</span>
@@ -283,7 +298,8 @@ export function CallDetailClient({
               <input
                 type="text"
                 defaultValue={lead?.quotedPrice?.toString() || ""}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                readOnly
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring read-only:cursor-not-allowed read-only:bg-muted/50 read-only:text-muted-foreground read-only:border-muted"
                 placeholder="$0.00"
               />
             </div>

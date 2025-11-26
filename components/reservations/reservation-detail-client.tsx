@@ -11,6 +11,21 @@ import { format } from "date-fns"
 import Link from "next/link"
 import { ArrowLeft, User, Calendar, Building2 } from "lucide-react"
 
+function formatPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "")
+  if (digits.length === 10) {
+    return `+1 ${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  if (digits.length === 11 && digits[0] === "1") {
+    return `+1 ${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`
+  }
+  if (digits.length >= 10) {
+    const last10 = digits.slice(-10)
+    return `+1 ${last10.slice(0, 3)}-${last10.slice(3, 6)}-${last10.slice(6)}`
+  }
+  return phone
+}
+
 type SerializedReservation = Omit<Reservation, "createdAt" | "updatedAt" | "travelDetails" | "documents" | "history"> & {
   createdAt: string
   updatedAt: string
@@ -72,7 +87,7 @@ export function ReservationDetailClient({ reservation, lead }: ReservationDetail
                     </div>
                     <div>
                       <div className="text-sm text-muted-foreground">Phone</div>
-                      <div className="font-medium">{lead.phoneNumber}</div>
+                      <div className="font-medium">{formatPhoneNumber(lead.phoneNumber)}</div>
                     </div>
                     {lead.email && (
                       <div>

@@ -22,6 +22,7 @@ type SerializedLead = Omit<Lead, "createdAt" | "updatedAt"> & {
 type SerializedCall = Omit<Call, "createdAt" | "endedAt"> & {
   createdAt: string
   endedAt: string | null
+  summary: string
 }
 
 interface LeadDetailClientProps {
@@ -87,6 +88,14 @@ export function LeadDetailClient({
 
   const createdAt = new Date(lead.createdAt)
 
+  // Generate overall summary from all calls
+  const overallSummary = calls.length > 0 
+    ? calls
+        .filter(call => call.summary)
+        .map(call => call.summary)
+        .join(" ")
+    : "No call history yet."
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -98,16 +107,11 @@ export function LeadDetailClient({
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl">
-              {lead.name ? lead.name.charAt(0).toUpperCase() : "?"}
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">{lead.name || "Unknown Client"}</h1>
-              <p className="text-muted-foreground">
-                Client since {format(createdAt, "MMMM yyyy")}
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold">{lead.name || "Unknown Client"}</h1>
+            <p className="text-muted-foreground">
+              Client since {format(createdAt, "MMMM yyyy")}
+            </p>
           </div>
         </div>
         <Button onClick={handleSave} disabled={isSaving}>
@@ -115,13 +119,28 @@ export function LeadDetailClient({
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column - Contact & Profile */}
+      {/* Overall Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Client Interest Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm leading-relaxed">
+            {overallSummary}
+          </p>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Left Column */}
         <div className="space-y-6">
           {/* Contact Card */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Contact Information</CardTitle>
+            <CardHeader>
+              <CardTitle className="text-lg">Contact Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -156,60 +175,32 @@ export function LeadDetailClient({
                   className="mt-1"
                 />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Stats Card */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Client Stats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 rounded-lg bg-muted/50">
-                  <div className="text-3xl font-bold text-primary">{lead.totalCalls}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Total Calls</div>
-                </div>
-                <div className="text-center p-3 rounded-lg bg-muted/50">
-                  <div className="text-3xl font-bold text-green-600">0</div>
-                  <div className="text-xs text-muted-foreground mt-1">Trips Booked</div>
+              <div className="pt-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center p-3 rounded-lg bg-muted/50">
+                    <div className="text-2xl font-bold text-primary">{lead.totalCalls}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Total Calls</div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-muted/50">
+                    <div className="text-2xl font-bold text-green-600">0</div>
+                    <div className="text-xs text-muted-foreground mt-1">Bookings</div>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Middle Column - Notes & Travel Preferences */}
-        <div className="space-y-6">
-          {/* Notes */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Agent Notes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add notes about this client's preferences, past trips, special requests..."
-                className="min-h-[200px] resize-none"
-              />
             </CardContent>
           </Card>
 
           {/* Travel Preferences */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Plane className="h-4 w-4" />
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Plane className="h-5 w-5" />
                 Travel Preferences
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <label className="text-sm text-muted-foreground">Preferred Destinations</label>
+                <label className="text-sm text-muted-foreground">Destinations</label>
                 <Input
                   value={preferredDestinations}
                   onChange={(e) => setPreferredDestinations(e.target.value)}
@@ -218,7 +209,7 @@ export function LeadDetailClient({
                 />
               </div>
               <div>
-                <label className="text-sm text-muted-foreground">Budget Range</label>
+                <label className="text-sm text-muted-foreground">Budget</label>
                 <Input
                   value={budgetRange}
                   onChange={(e) => setBudgetRange(e.target.value)}
@@ -227,7 +218,7 @@ export function LeadDetailClient({
                 />
               </div>
               <div>
-                <label className="text-sm text-muted-foreground">Travel Style</label>
+                <label className="text-sm text-muted-foreground">Style</label>
                 <Input
                   value={travelStyle}
                   onChange={(e) => setTravelStyle(e.target.value)}
@@ -239,35 +230,27 @@ export function LeadDetailClient({
           </Card>
         </div>
 
-        {/* Right Column - Latest Summary & Quick Actions */}
+        {/* Right Column */}
         <div className="space-y-6">
-          {/* Latest Call Summary */}
+          {/* Notes */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Latest Conversation</CardTitle>
-              {latestCallTimestamp && (
-                <p className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(latestCallTimestamp), { addSuffix: true })}
-                </p>
-              )}
+            <CardHeader>
+              <CardTitle className="text-lg">Agent Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              {latestSummary ? (
-                <p className="text-sm leading-relaxed bg-muted/50 rounded-lg p-3">
-                  {latestSummary}
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No conversations yet.
-                </p>
-              )}
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add notes about this client..."
+                className="min-h-[280px] resize-none"
+              />
             </CardContent>
           </Card>
 
           {/* Quick Actions */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Quick Actions</CardTitle>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <Button variant="outline" className="w-full justify-start" asChild>
@@ -295,9 +278,9 @@ export function LeadDetailClient({
 
       {/* Call History */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Clock className="h-4 w-4" />
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
             Call History
           </CardTitle>
         </CardHeader>

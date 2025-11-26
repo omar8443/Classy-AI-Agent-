@@ -20,10 +20,14 @@ interface LeadsTableProps {
 function formatPhoneNumber(phone: string): string {
   const digits = phone.replace(/\D/g, "")
   if (digits.length === 10) {
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+    return `+1 ${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
   }
   if (digits.length === 11 && digits[0] === "1") {
-    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`
+    return `+1 ${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`
+  }
+  if (digits.length >= 10) {
+    const last10 = digits.slice(-10)
+    return `+1 ${last10.slice(0, 3)}-${last10.slice(3, 6)}-${last10.slice(6)}`
   }
   return phone
 }
@@ -71,28 +75,22 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
               <div
                 key={lead.id}
                 onClick={() => router.push(`/leads/${lead.id}`)}
-                className="group flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
+                className="group flex items-center gap-4 p-5 rounded-lg border bg-card hover:shadow-md hover:border-primary/50 cursor-pointer transition-all select-none"
               >
-                {/* Avatar */}
-                <div className="flex-shrink-0">
-                  <div className="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                    <Phone className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                  </div>
-                </div>
-
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-lg truncate">
+                    <span className="font-semibold text-xl truncate">
                       {lead.name || "Unknown Client"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
+                  <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <Phone className="h-3.5 w-3.5" />
                       {formatPhoneNumber(lead.phoneNumber)}
                     </span>
                     {lead.email && (
-                      <span className="flex items-center gap-1 truncate">
+                      <span className="flex items-center gap-1.5 truncate">
                         <Mail className="h-3.5 w-3.5" />
                         {lead.email}
                       </span>
@@ -116,7 +114,7 @@ export function LeadsTable({ leads: initialLeads }: LeadsTableProps) {
                     </div>
                   </div>
                   
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
               </div>
             )

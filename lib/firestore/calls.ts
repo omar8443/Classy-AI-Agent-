@@ -65,3 +65,53 @@ export async function getCallById(id: string): Promise<Call | null> {
   } as Call
 }
 
+export async function getAssignedCalls(userId?: string, isAdmin?: boolean): Promise<Call[]> {
+  const { db } = getFirebaseAdmin()
+  
+  if (!isAdmin && userId) {
+    // For non-admin users, get only their assigned calls
+    const query = db.collection("calls")
+      .where("assignedTo", "==", userId)
+      .orderBy("createdAt", "desc") as any
+    
+    const snapshot = await query.get()
+    
+    return snapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        endedAt: data.endedAt?.toDate() || null,
+        archived: data.archived ?? false,
+      }
+    }) as Call[]
+  } else if (isAdmin) {
+    // For admin, get all calls and filter in-memory to avoid complex index
+    const query = db.collection("calls")
+      .orderBy("createdAt", "desc") as any
+    
+    const snapshot = await query.get()
+    
+    // Filter for calls that have an assignedTo value
+    return snapshot.docs
+      .filter((doc) => {
+        const data = doc.data()
+        return data.assignedTo && data.assignedTo !== null && data.assignedTo !== ""
+      })
+      .map((doc) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          endedAt: data.endedAt?.toDate() || null,
+          archived: data.archived ?? false,
+        }
+      }) as Call[]
+  } else {
+    // No user specified and not admin - return empty
+    return []
+  }
+}
+

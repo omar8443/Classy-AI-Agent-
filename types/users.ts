@@ -19,7 +19,6 @@ export interface UserStats {
   totalCalls: number
   totalReservations: number
   totalRevenue: number
-  conversionRate: number
   avgCallDuration: number
 }
 
@@ -65,7 +64,6 @@ export const UserStatsSchema = z.object({
   totalCalls: z.number().default(0),
   totalReservations: z.number().default(0),
   totalRevenue: z.number().default(0),
-  conversionRate: z.number().default(0),
   avgCallDuration: z.number().default(0),
 })
 
@@ -97,7 +95,6 @@ export const UserSchema = z.object({
     totalCalls: 0,
     totalReservations: 0,
     totalRevenue: 0,
-    conversionRate: 0,
     avgCallDuration: 0,
   }),
   preferences: UserPreferencesSchema.default({

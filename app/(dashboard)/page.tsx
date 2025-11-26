@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { format, formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow } from "date-fns"
 import { Phone, TrendingUp, Users, Clock } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +24,12 @@ function formatPhoneNumber(phone: string): string {
     return `+1 ${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`
   }
   
+  // For any other length, try to format with +1 prefix if possible
+  if (digits.length >= 10) {
+    const last10 = digits.slice(-10)
+    return `+1 ${last10.slice(0, 3)}-${last10.slice(3, 6)}-${last10.slice(6)}`
+  }
+  
   // Otherwise return as-is
   return phone
 }
@@ -41,7 +47,6 @@ export default async function DashboardPage() {
   }).length
   const totalCalls = activeCalls.length
   const bookedLeads = leads.filter((lead) => lead.status === "booked").length
-  const conversionRate = totalLeads > 0 ? ((bookedLeads / totalLeads) * 100).toFixed(1) : "0"
 
   const stats = [
     {
@@ -57,9 +62,9 @@ export default async function DashboardPage() {
       icon: Phone,
     },
     {
-      title: "Conversion Rate",
-      value: `${conversionRate}%`,
-      description: `${bookedLeads} booked`,
+      title: "Booked Leads",
+      value: bookedLeads.toString(),
+      description: "Total bookings",
       icon: TrendingUp,
     },
     {
@@ -125,16 +130,21 @@ export default async function DashboardPage() {
                     href={`/calls/${call.id}`}
                     className="block rounded-lg border p-4 transition-colors hover:bg-accent"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 space-y-2">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-3">
                           <span className="font-medium">{call.callerName || "Unknown"}</span>
                           <span className="text-sm text-muted-foreground">{formatPhoneNumber(call.callerPhoneNumber || "No number")}</span>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">{preview}</p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>{createdAt ? format(createdAt, "MMM d, yyyy 'at' h:mm a") : "Just now"}</span>
-                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground shrink-0">
+                        <span>{createdAt ? formatDistanceToNow(createdAt, { addSuffix: true }) : "Just now"}</span>
+                        {call.assignedToName ? (
+                          <span className="text-green-600 dark:text-green-400">Assigned to {call.assignedToName}</span>
+                        ) : (
+                          <span className="text-amber-600 dark:text-amber-400">Unassigned</span>
+                        )}
                       </div>
                     </div>
                   </Link>

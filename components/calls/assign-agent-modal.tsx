@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/lib/hooks/useAuth"
+import { usePermissions } from "@/lib/hooks/usePermissions"
 
 interface Agent {
   id: string
@@ -36,6 +38,8 @@ export function AssignAgentModal({
 }: AssignAgentModalProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
+  const { isAdmin } = usePermissions()
   const [loading, setLoading] = useState(false)
   const [agents, setAgents] = useState<Agent[]>([])
   const [selectedAgent, setSelectedAgent] = useState<string>(currentAssignedTo || "")
@@ -43,10 +47,22 @@ export function AssignAgentModal({
   useEffect(() => {
     async function fetchAgents() {
       try {
-        const response = await fetch("/api/users?role=agent")
-        if (response.ok) {
-          const data = await response.json()
-          setAgents(data)
+        // If not admin, only show the current user as option
+        if (!isAdmin && user) {
+          const userName = user.displayName || user.email?.split("@")[0] || "Me"
+          setAgents([{
+            id: user.uid,
+            name: userName,
+            email: user.email || ""
+          }])
+          setSelectedAgent(user.uid)
+        } else if (isAdmin) {
+          // Admins can see all agents
+          const response = await fetch("/api/users?role=agent")
+          if (response.ok) {
+            const data = await response.json()
+            setAgents(data)
+          }
         }
       } catch (error) {
         console.error("Error fetching agents:", error)
@@ -56,10 +72,10 @@ export function AssignAgentModal({
     if (open) {
       fetchAgents()
     }
-  }, [open])
+  }, [open, isAdmin, user])
 
   const handleAssign = async () => {
-    if (!selectedAgent) {
+    if (!selectedAgent || !user) {
       toast({
         title: "Agent required",
         description: "Please select an agent.",
@@ -72,20 +88,30 @@ export function AssignAgentModal({
 
     try {
       const agent = agents.find((a) => a.id === selectedAgent)
+      
+      // Get current user role
+      const tokenResult = await user.getIdTokenResult()
+      const currentUserRole = tokenResult.claims.role as string | undefined
 
       const response = await fetch(`/api/calls/${callId}/assign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          userId: selectedAgent,
           assignedTo: selectedAgent,
           assignedToName: agent?.name || "Unknown",
+          currentUserId: user.uid,
+          currentUserRole: currentUserRole || "agent",
         }),
       })
 
-      if (!response.ok) throw new Error("Failed to assign agent")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to assign agent")
+      }
 
       toast({
-        title: "Agent assigned",
+        title: "Call assigned",
         description: `Call has been assigned to ${agent?.name}.`,
       })
 
@@ -95,7 +121,7 @@ export function AssignAgentModal({
       console.error(error)
       toast({
         title: "Assignment failed",
-        description: "Please try again.",
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -107,9 +133,11 @@ export function AssignAgentModal({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Assign Agent</DialogTitle>
+          <DialogTitle>Assign {isAdmin ? "Agent" : "to Me"}</DialogTitle>
           <DialogDescription>
-            Assign this call to a specific agent for follow-up.
+            {isAdmin 
+              ? "Assign this call to a specific agent for follow-up."
+              : "Take ownership of this call for follow-up."}
           </DialogDescription>
         </DialogHeader>
 

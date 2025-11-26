@@ -50,22 +50,6 @@ function getAgentColor(agentName: string): string {
   return colors[index % colors.length]
 }
 
-function extractClientNeeds(summary: string): string {
-  if (!summary) return ""
-  
-  // Extract destination, departure, and dates from summary
-  const destinationMatch = summary.match(/(?:destination|going to|traveling to|wants to visit|interested in)[:;\s]*([^.;,\n]+)/i)
-  const departureMatch = summary.match(/(?:from|departing from|leaving from)[:;\s]*([^.;,\n]+)/i)
-  const dateMatch = summary.match(/(?:date|dates|departure|travel|when)[:;\s]*([^.;,\n]+)/i)
-  
-  const parts = []
-  if (destinationMatch) parts.push(destinationMatch[1].trim())
-  if (departureMatch && !parts[0]?.toLowerCase().includes('from')) parts.push(`from ${departureMatch[1].trim()}`)
-  if (dateMatch) parts.push(dateMatch[1].trim())
-  
-  return parts.slice(0, 3).join(" • ")
-}
-
 export function CallsTable({ calls: initialCalls }: CallsTableProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -207,12 +191,6 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
                       </Badge>
                     )}
                   </div>
-                  {/* Client needs summary */}
-                  {call.summary && extractClientNeeds(call.summary) && (
-                    <div className="mt-1 text-xs text-muted-foreground italic truncate">
-                      {extractClientNeeds(call.summary)}
-                    </div>
-                  )}
                 </div>
 
                 {/* Time & Actions */}

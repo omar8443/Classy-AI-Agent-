@@ -9,9 +9,19 @@ export async function POST(
   try {
     const callId = params.id
     const body = await request.json()
-    const { userId, notes, status } = body
+    const { userId, notes, status, currentUserId, currentUserRole } = body
 
     const { db } = getFirebaseAdmin()
+    
+    // Check permissions: only admins can assign to anyone
+    // Non-admins can only assign to themselves
+    if (currentUserRole !== "admin" && userId !== currentUserId) {
+      return NextResponse.json(
+        { ok: false, error: "You can only assign calls to yourself" },
+        { status: 403 }
+      )
+    }
+
     const callRef = db.collection("calls").doc(callId)
     const callDoc = await callRef.get()
 

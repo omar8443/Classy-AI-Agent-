@@ -20,24 +20,53 @@ export async function summarizeCall(transcript: string): Promise<CallSummary> {
         Authorization: `Bearer ${openaiApiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
-            content:
-              "You are a helpful assistant that summarizes phone calls. Provide a concise 2-3 sentence summary. Respond in JSON format: {\"summary\": \"...\"}",
+            content: `You are an expert assistant that creates concise call summaries for travel agents.
+
+Your goal: Help the agent quickly understand what the client wants so they can call them back prepared.
+
+FOCUS ON:
+- Travel destination(s) the client is interested in
+- Departure city/location if mentioned
+- Travel dates or timeframe
+- Number of travelers and their relationship (family, couple, solo, etc.)
+- Budget range if discussed
+- Specific requests or preferences (hotel type, activities, etc.)
+- Any urgency or timeline for booking
+
+NEVER INCLUDE:
+- Administrative details (phone numbers, email collection, name confirmation)
+- Small talk or greetings
+- Repetitive information
+- The fact that information was "collected" or "confirmed"
+
+FORMAT:
+Write 2-3 clear, direct sentences. Start with the most important information (destination and purpose).
+Always use "the client" (never "the user" or "they").
+
+EXAMPLE GOOD SUMMARY:
+"The client is interested in a family trip to Dubai for 4 people in December. They're departing from Montreal and looking for luxury hotels with activities for children. Budget is around $8,000-10,000."
+
+EXAMPLE BAD SUMMARY:
+"The user provided their phone number as 514-XXX-XXXX and name as John. The assistant confirmed the details and asked for an email address. The user mentioned interest in travel."`,
           },
           {
             role: "user",
-            content: `Summarize this phone call transcript:\n\n${transcript}`,
+            content: `Summarize this call transcript:\n\n${transcript}`,
           },
         ],
-        temperature: 0.3,
-        max_tokens: 200,
+        temperature: 0.5,
+        max_tokens: 300,
+        response_format: { type: "text" },
       }),
     })
 
     if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`OpenAI API error: ${response.status} ${response.statusText}`, errorText)
       throw new Error(`OpenAI API error: ${response.statusText}`)
     }
 
@@ -48,18 +77,25 @@ export async function summarizeCall(transcript: string): Promise<CallSummary> {
       throw new Error("No content in OpenAI response")
     }
 
-    // Try to parse JSON from the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    // Clean up the summary
+    let summary = content.trim()
+    
+    // Remove any JSON formatting if present
+    const jsonMatch = summary.match(/\{[\s\S]*"summary"[\s\S]*:[\s\S]*"([^"]+)"[\s\S]*\}/)
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0])
-      return {
-        summary: parsed.summary || transcript.slice(0, 500),
-      }
+      summary = jsonMatch[1]
+    }
+    
+    // Remove markdown code blocks if present
+    summary = summary.replace(/```json\n?/g, '').replace(/```\n?/g, '')
+    
+    // Remove quotes if the entire response is quoted
+    if (summary.startsWith('"') && summary.endsWith('"')) {
+      summary = summary.slice(1, -1)
     }
 
-    // Fallback if JSON parsing fails
     return {
-      summary: content.slice(0, 500),
+      summary: summary || transcript.slice(0, 500),
     }
   } catch (error) {
     console.error("Error summarizing call with OpenAI:", error)

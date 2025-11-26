@@ -119,7 +119,7 @@ export function ReservationsTable({ reservations }: ReservationsTableProps) {
                 <tr
                   key={reservation.id}
                   onClick={() => router.push(`/reservations/${reservation.id}`)}
-                  className="cursor-pointer border-b transition-colors hover:bg-muted/50"
+                  className="cursor-pointer border-b transition-colors hover:bg-muted/50 select-none"
                 >
                   <td className="p-4 font-medium">{reservation.reservationId}</td>
                   <td className="p-4">{reservation.travelDetails.destination}</td>

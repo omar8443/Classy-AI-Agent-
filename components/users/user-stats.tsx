@@ -1,7 +1,7 @@
 "use client"
 
 import { UserStats as UserStatsType } from "@/types/users"
-import { Phone, Calendar, DollarSign, TrendingUp, Clock } from "lucide-react"
+import { Phone, Calendar, DollarSign, Clock } from "lucide-react"
 
 interface UserStatsProps {
   stats: UserStatsType
@@ -32,14 +32,6 @@ export function UserStats({ stats }: UserStatsProps) {
           <span className="text-sm text-muted-foreground">Total Revenue</span>
         </div>
         <span className="font-semibold">${stats.totalRevenue.toLocaleString()}</span>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Conversion Rate</span>
-        </div>
-        <span className="font-semibold">{stats.conversionRate.toFixed(1)}%</span>
       </div>
 
       <div className="flex items-center justify-between">
