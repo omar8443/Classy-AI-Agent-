@@ -4,14 +4,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { usePermissions } from "@/lib/hooks/usePermissions"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, Phone, Users, LogOut, Plane, UserCog, Settings, CalendarCheck, ClipboardCheck, UserPlus } from "lucide-react"
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
   { href: "/calls", label: "Calls", icon: Phone, adminOnly: false },
-  { href: "/calls/unassigned", label: "Requested Agent", icon: UserPlus, adminOnly: false },
+  { href: "/calls/unassigned", label: "Agent Requested", icon: UserPlus, adminOnly: false },
   { href: "/agent-requested", label: "Assigned to Me", icon: ClipboardCheck, adminOnly: false },
   { href: "/leads", label: "Leads", icon: Users, adminOnly: false },
   { href: "/reservations", label: "Reservations", icon: CalendarCheck, adminOnly: false },
@@ -44,14 +43,22 @@ export function DashboardSidebar() {
   }
 
   return (
-    <div className="flex w-64 flex-col border-r border-border bg-card/50 backdrop-blur-sm">
-      <div className="flex h-[72px] items-center justify-center gap-2 border-b border-border px-6">
-        <div className="p-2 rounded-lg bg-blue-500/10">
-          <Plane className="h-5 w-5 text-blue-500" />
+    <aside className="w-56 bg-[#1A1A1A] text-white flex flex-col h-screen rounded-r-3xl">
+      {/* Logo & Title */}
+      <div className="p-6 mb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Plane className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-bold leading-tight">Voyages</span>
+            <span className="text-sm font-bold leading-tight">Classy</span>
+          </div>
         </div>
-        <h1 className="text-base font-bold whitespace-nowrap">Voyages Classy</h1>
       </div>
-      <nav className="flex-1 space-y-1 p-3">
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = isNavItemActive(item.href)
@@ -60,13 +67,13 @@ export function DashboardSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors",
                 isActive 
-                  ? "bg-primary text-primary-foreground shadow-sm" 
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  ? "bg-white/10 text-white" 
+                  : "text-neutral-400 hover:text-white hover:bg-white/5"
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="w-5 h-5" />
               {item.label}
             </Link>
           )
@@ -74,8 +81,8 @@ export function DashboardSidebar() {
         
         {isAdmin && (
           <>
-            <div className="my-3 border-t border-border pt-3">
-              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+            <div className="my-3 pt-3">
+              <p className="px-4 text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">
                 Administration
               </p>
             </div>
@@ -87,13 +94,13 @@ export function DashboardSidebar() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors",
                     isActive 
-                      ? "bg-primary text-primary-foreground shadow-sm" 
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      ? "bg-white/10 text-white" 
+                      : "text-neutral-400 hover:text-white hover:bg-white/5"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="w-5 h-5" />
                   {item.label}
                 </Link>
               )
@@ -101,13 +108,18 @@ export function DashboardSidebar() {
           </>
         )}
       </nav>
-      <div className="border-t border-border p-3">
-        <Button variant="ghost" className="w-full justify-start gap-3 text-sm font-medium" onClick={() => signOut()}>
-          <LogOut className="h-4 w-4" />
+
+      {/* Bottom - Settings */}
+      <div className="p-3 mt-auto">
+        <button 
+          onClick={() => signOut()}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 text-sm font-medium hover:text-white hover:bg-white/5 transition-colors w-full"
+        >
+          <LogOut className="w-5 h-5" />
           Sign out
-        </Button>
+        </button>
       </div>
-    </div>
+    </aside>
   )
 }
 

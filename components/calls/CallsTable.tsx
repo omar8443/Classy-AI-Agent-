@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { format, formatDistanceToNow } from "date-fns"
-import { Phone, Archive, Trash2, Search, ChevronRight, User, Clock } from "lucide-react"
+import { Phone, Trash2, Search, ChevronRight, User, Clock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { Call } from "@/types/calls"
 
@@ -31,31 +30,12 @@ function formatPhoneNumber(phone: string): string {
   return phone
 }
 
-// Couleurs pour les agents assignés
-const agentColors: Record<string, string> = {
-  default: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
-}
-
-function getAgentColor(agentName: string): string {
-  // Génère une couleur basée sur le nom
-  const colors = [
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-    "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300",
-    "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
-    "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
-  ]
-  const index = agentName.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return colors[index % colors.length]
-}
 
 export function CallsTable({ calls: initialCalls }: CallsTableProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
   const [calls, setCalls] = useState(initialCalls)
-  const [archivingId, setArchivingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Sync calls when props change (e.g., after navigation back from detail page)
@@ -74,30 +54,6 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
 
       return matchesSearch
     })
-
-  const handleArchive = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setArchivingId(id)
-    try {
-      const response = await fetch(`/api/calls/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ archived: true }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to archive call")
-      }
-
-      setCalls((prev) => prev.map((call) => (call.id === id ? { ...call, archived: true } : call)))
-      toast({ title: "Call archived", description: "The call has been moved to your archive." })
-    } catch (error) {
-      console.error(error)
-      toast({ title: "Archive failed", description: "Please try again.", variant: "destructive" })
-    } finally {
-      setArchivingId(null)
-    }
-  }
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -129,29 +85,29 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
     <div className="space-y-4">
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
         <Input
           placeholder="Search calls by name, phone, or transcript..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 h-10 max-w-md shadow-sm border-border/60 focus-visible:border-primary/50"
+          className="pl-10 h-11 max-w-md bg-white rounded-xl border-neutral-100 text-neutral-900 placeholder:text-neutral-300 focus-visible:ring-1 focus-visible:ring-neutral-900"
         />
       </div>
 
       {filteredCalls.length === 0 ? (
-        <div className="py-20 text-center">
-          <div className="mx-auto h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-            <Phone className="h-8 w-8 text-muted-foreground/60" />
+        <div className="py-20 text-center bg-white rounded-2xl">
+          <div className="mx-auto h-16 w-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
+            <Phone className="h-8 w-8 text-neutral-400" />
           </div>
-          <h3 className="text-base font-semibold mb-1">
+          <h3 className="text-base font-semibold mb-1 text-neutral-900">
             {calls.length === 0 ? "No calls yet" : "No matching calls"}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-neutral-400">
             {calls.length === 0 ? "Calls will appear here when they come in" : "Try adjusting your search query"}
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {filteredCalls.map((call) => {
             const createdAt = new Date(call.createdAt)
             const isUnassigned = !call.assignedTo
@@ -159,77 +115,81 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
             return (
               <div
                 key={call.id}
-                onClick={() => router.push(`/calls/${call.id}`)}
-                className={`group flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
-                  isUnassigned 
-                    ? "bg-orange-50/50 dark:bg-orange-950/10 border-orange-200/60 dark:border-orange-900/50 hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:shadow-sm" 
-                    : "bg-card hover:bg-accent/30 hover:shadow-sm hover:border-border/80"
-                }`}
+                className="group flex items-center gap-4 px-5 py-4 bg-white border border-neutral-100 rounded-xl hover:border-neutral-200 hover:shadow-sm transition-all"
               >
                 {/* Avatar */}
                 <div className="flex-shrink-0">
-                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-colors ${
-                    isUnassigned ? "bg-orange-100 dark:bg-orange-900/30" : "bg-muted"
+                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                    isUnassigned ? "bg-orange-100" : "bg-neutral-100"
                   }`}>
-                    <Phone className={`h-4 w-4 ${isUnassigned ? "text-orange-600 dark:text-orange-400" : "text-foreground"}`} />
+                    <Phone className={`h-4 w-4 ${isUnassigned ? "text-orange-600" : "text-neutral-600"}`} />
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0">
+                <div 
+                  className="flex-1 min-w-0 cursor-pointer"
+                  onClick={() => router.push(`/calls/${call.id}`)}
+                >
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className="font-semibold text-sm">
+                    <span className="font-semibold text-sm text-neutral-900">
                       {call.callerName || "Unknown"}
                     </span>
-                    <span className="text-xs text-muted-foreground font-medium">
+                    <span className="text-xs text-neutral-400 font-medium">
                       {formatPhoneNumber(call.callerPhoneNumber)}
                     </span>
                     {/* Badge d'assignation */}
                     {call.assignedToName ? (
-                      <Badge className={`text-xs font-medium px-2.5 py-0.5 ${getAgentColor(call.assignedToName)}`}>
-                        <User className="h-3 w-3 mr-1" />
+                      <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-900 border border-neutral-200">
+                        <User className="h-3 w-3" />
                         {call.assignedToName}
-                      </Badge>
+                      </span>
                     ) : (
-                      <Badge className="text-xs font-medium px-2.5 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200/50 dark:border-orange-800/50">
+                      <span className="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-lg bg-orange-100 text-orange-700 border border-orange-200">
                         Unassigned
-                      </Badge>
+                      </span>
                     )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-xs text-neutral-400 mt-1">
+                    <Clock className="h-3 w-3" />
+                    <span>{formatDistanceToNow(createdAt, { addSuffix: true })}</span>
+                    <span>•</span>
+                    <span>{format(createdAt, "MMM d, h:mm a")}</span>
                   </div>
                 </div>
 
-                {/* Time & Actions */}
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="text-right text-xs">
-                    <div className="font-semibold flex items-center gap-1.5 justify-end text-foreground">
-                      <Clock className="h-3 w-3 text-muted-foreground" />
-                      {formatDistanceToNow(createdAt, { addSuffix: true })}
-                    </div>
-                    <div className="text-muted-foreground font-medium">{format(createdAt, "MMM d, h:mm a")}</div>
-                  </div>
-                  
-                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Actions */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {isUnassigned && (
                     <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 hover:bg-accent"
-                      disabled={archivingId === call.id}
-                      onClick={(e) => handleArchive(call.id, e)}
+                      size="sm"
+                      variant="outline"
+                      className="h-9 text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        // TODO: Implement assign to me functionality
+                        console.log("Assign to me:", call.id)
+                      }}
                     >
-                      <Archive className="h-3.5 w-3.5" />
+                      Assign to me
                     </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      disabled={deletingId === call.id}
-                      onClick={(e) => handleDelete(call.id, e)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+                  )}
                   
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <button
+                    className="opacity-0 group-hover:opacity-100 w-8 h-8 rounded-lg bg-neutral-100 hover:bg-red-50 flex items-center justify-center text-neutral-400 hover:text-red-500 transition-all"
+                    disabled={deletingId === call.id}
+                    onClick={(e) => handleDelete(call.id, e)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                  
+                  <button
+                    onClick={() => router.push(`/calls/${call.id}`)}
+                    className="w-8 h-8 rounded-lg hover:bg-neutral-100 flex items-center justify-center transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4 text-neutral-400 group-hover:text-neutral-900 transition-colors" />
+                  </button>
                 </div>
               </div>
             )

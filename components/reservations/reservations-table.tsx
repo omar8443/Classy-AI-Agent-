@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Reservation, ReservationStatus, PaymentStatus } from "@/types/reservation"
+import { Reservation, ReservationStatus } from "@/types/reservation"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -24,25 +24,17 @@ interface ReservationsTableProps {
 }
 
 const statusColors: Record<ReservationStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  confirmed: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  modified: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-  completed: "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300",
-}
-
-const paymentColors: Record<PaymentStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  partial: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  paid: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  refunded: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  pending: "bg-yellow-100 text-yellow-700",
+  confirmed: "bg-green-100 text-green-700",
+  modified: "bg-blue-100 text-blue-700",
+  cancelled: "bg-red-100 text-red-700",
+  completed: "bg-neutral-100 text-neutral-700",
 }
 
 export function ReservationsTable({ reservations }: ReservationsTableProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [platformFilter, setPlatformFilter] = useState<string>("all")
 
   const filteredReservations = reservations.filter((res) => {
     const matchesSearch =
@@ -52,9 +44,8 @@ export function ReservationsTable({ reservations }: ReservationsTableProps) {
       res.agentName.toLowerCase().includes(searchQuery.toLowerCase())
 
     const matchesStatus = statusFilter === "all" || res.status === statusFilter
-    const matchesPlatform = platformFilter === "all" || res.bookingPlatform === platformFilter
 
-    return matchesSearch && matchesStatus && matchesPlatform
+    return matchesSearch && matchesStatus
   })
 
   return (
@@ -64,10 +55,10 @@ export function ReservationsTable({ reservations }: ReservationsTableProps) {
           placeholder="Search by ID, destination, or agent..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm bg-white rounded-xl border-neutral-100 text-neutral-900 placeholder:text-neutral-300 h-11"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] bg-white rounded-xl border-neutral-100 h-11">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -79,66 +70,48 @@ export function ReservationsTable({ reservations }: ReservationsTableProps) {
             <SelectItem value="completed">Completed</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={platformFilter} onValueChange={setPlatformFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by platform" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Platforms</SelectItem>
-            <SelectItem value="booking.com">Booking.com</SelectItem>
-            <SelectItem value="expedia">Expedia</SelectItem>
-            <SelectItem value="amadeus">Amadeus</SelectItem>
-            <SelectItem value="sabre">Sabre</SelectItem>
-            <SelectItem value="direct">Direct</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {filteredReservations.length === 0 ? (
-        <div className="py-8 text-center text-muted-foreground">
+        <div className="py-12 text-center text-neutral-400 bg-white rounded-2xl">
           {reservations.length === 0 ? "No reservations yet." : "No reservations match your filters."}
         </div>
       ) : (
-        <div className="rounded-lg border">
+        <div className="bg-white rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="h-12 px-4 text-left align-middle font-medium">ID</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Destination</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Dates</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Price</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Platform</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Agent</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
-                <th className="h-12 px-4 text-left align-middle font-medium">Payment</th>
+              <tr className="border-b border-neutral-100 bg-neutral-50/50 text-xs uppercase tracking-wide text-neutral-400">
+                <th className="h-12 px-5 text-left align-middle font-medium">ID</th>
+                <th className="h-12 px-5 text-left align-middle font-medium">Destination</th>
+                <th className="h-12 px-5 text-left align-middle font-medium">Dates</th>
+                <th className="h-12 px-5 text-left align-middle font-medium">Price</th>
+                <th className="h-12 px-5 text-left align-middle font-medium">Agent</th>
+                <th className="h-12 px-5 text-left align-middle font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
-              {filteredReservations.map((reservation) => (
+              {filteredReservations.map((reservation, i) => (
                 <tr
                   key={reservation.id}
                   onClick={() => router.push(`/reservations/${reservation.id}`)}
-                  className="cursor-pointer border-b transition-colors hover:bg-muted/50 select-none"
+                  className={`cursor-pointer transition-colors hover:bg-neutral-50 select-none ${
+                    i !== filteredReservations.length - 1 ? "border-b border-neutral-100" : ""
+                  }`}
                 >
-                  <td className="p-4 font-medium">{reservation.reservationId}</td>
-                  <td className="p-4">{reservation.travelDetails.destination}</td>
-                  <td className="p-4 text-muted-foreground">
+                  <td className="px-5 py-4 font-medium text-neutral-900">{reservation.reservationId}</td>
+                  <td className="px-5 py-4 text-neutral-900">{reservation.travelDetails.destination}</td>
+                  <td className="px-5 py-4 text-neutral-400">
                     {format(new Date(reservation.travelDetails.departureDate), "MMM d")} -{" "}
                     {format(new Date(reservation.travelDetails.returnDate), "MMM d, yyyy")}
                   </td>
-                  <td className="p-4 font-medium">
+                  <td className="px-5 py-4 font-medium text-neutral-900">
                     {reservation.pricing.currency} ${reservation.pricing.total.toLocaleString()}
                   </td>
-                  <td className="p-4 text-muted-foreground">{reservation.bookingPlatform}</td>
-                  <td className="p-4 text-muted-foreground">{reservation.agentName}</td>
-                  <td className="p-4">
-                    <Badge className={statusColors[reservation.status]}>{reservation.status}</Badge>
-                  </td>
-                  <td className="p-4">
-                    <Badge className={paymentColors[reservation.paymentStatus]}>
-                      {reservation.paymentStatus}
-                    </Badge>
+                  <td className="px-5 py-4 text-neutral-400">{reservation.agentName}</td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[reservation.status]}`}>
+                      {reservation.status}
+                    </span>
                   </td>
                 </tr>
               ))}

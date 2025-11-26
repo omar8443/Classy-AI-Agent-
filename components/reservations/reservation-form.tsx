@@ -34,7 +34,7 @@ export function ReservationForm() {
     fees: 0,
     currency: "CAD" as Currency,
     bookingPlatform: "direct" as BookingPlatform,
-    platformConfirmationNumber: "",
+    platformConfirmationNumber: null,
     notes: "",
   })
 
@@ -357,38 +357,6 @@ export function ReservationForm() {
 
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Booking Platform</h3>
-        
-        <div className="space-y-2">
-          <Label htmlFor="platform">Platform *</Label>
-          <Select
-            value={formData.bookingPlatform}
-            onValueChange={(value) => setFormData({ ...formData, bookingPlatform: value as BookingPlatform })}
-          >
-            <SelectTrigger id="platform">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="booking.com">Booking.com</SelectItem>
-              <SelectItem value="expedia">Expedia</SelectItem>
-              <SelectItem value="amadeus">Amadeus</SelectItem>
-              <SelectItem value="sabre">Sabre</SelectItem>
-              <SelectItem value="direct">Direct Booking</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="confirmationNumber">Platform Confirmation Number</Label>
-          <Input
-            id="confirmationNumber"
-            value={formData.platformConfirmationNumber}
-            onChange={(e) =>
-              setFormData({ ...formData, platformConfirmationNumber: e.target.value })
-            }
-            placeholder="ABC123XYZ"
-          />
-        </div>
       </div>
 
       <div className="space-y-4">

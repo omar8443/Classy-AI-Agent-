@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export type ReservationStatus = "pending" | "confirmed" | "modified" | "cancelled" | "completed"
-export type PaymentStatus = "pending" | "partial" | "paid" | "refunded"
+export type PaymentStatus = "partial" | "paid" | "refunded"
 export type BookingPlatform = "booking.com" | "expedia" | "amadeus" | "sabre" | "direct" | "other"
 export type Currency = "CAD" | "USD" | "EUR"
 
@@ -132,7 +132,7 @@ export const ReservationSchema = z.object({
   platformConfirmationNumber: z.string().nullable().optional(),
   travelDetails: TravelDetailsSchema,
   status: z.enum(["pending", "confirmed", "modified", "cancelled", "completed"]).default("pending"),
-  paymentStatus: z.enum(["pending", "partial", "paid", "refunded"]).default("pending"),
+  paymentStatus: z.enum(["partial", "paid", "refunded"]).default("partial"),
   documents: z.array(ReservationDocumentSchema).default([]),
   notes: z.string().nullable().optional(),
   history: z.array(ReservationHistoryEntrySchema).default([]),

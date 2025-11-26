@@ -12,6 +12,7 @@ export function CompanySettings() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [loadingSettings, setLoadingSettings] = useState(true)
   const [settings, setSettings] = useState({
     name: "Voyages Classy Travel",
     primaryColor: "#0EA5E9",
@@ -19,6 +20,26 @@ export function CompanySettings() {
     contactPhone: "+1 514-555-0100",
     address: "",
   })
+
+  // Load settings on mount
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const response = await fetch("/api/settings")
+        if (response.ok) {
+          const data = await response.json()
+          if (data.company) {
+            setSettings(data.company)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load settings:", error)
+      } finally {
+        setLoadingSettings(false)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,6 +73,10 @@ export function CompanySettings() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (loadingSettings) {
+    return <div className="text-sm text-muted-foreground">Loading settings...</div>
   }
 
   return (
@@ -92,8 +117,12 @@ export function CompanySettings() {
           type="email"
           value={settings.contactEmail}
           onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+          placeholder="info@yourcompany.ca"
           required
         />
+        <p className="text-sm text-muted-foreground">
+          📧 This email will receive notifications for all incoming calls with AI summaries
+        </p>
       </div>
 
       <div className="space-y-2">

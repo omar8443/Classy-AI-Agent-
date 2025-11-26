@@ -7,6 +7,8 @@ import {
 } from "@/types/webhooks"
 import { LeadSchema } from "@/types/leads"
 import { CallSchema } from "@/types/calls"
+import { sendEmail, generateNewLeadEmailHTML, generateCallNotificationEmailHTML } from "@/lib/email"
+import { getSettings } from "@/lib/firestore/settings"
 import crypto from "crypto"
 
 export async function POST(request: NextRequest) {
@@ -226,6 +228,7 @@ export async function POST(request: NextRequest) {
     
     // Find or create lead
     let leadId: string | null = null
+    let isNewLead = false
     const leadsQuery = await db
       .collection("leads")
       .where("phoneNumber", "==", payload.caller_phone_number)
@@ -258,6 +261,7 @@ export async function POST(request: NextRequest) {
       await leadDoc.ref.update(updateData)
     } else {
       // Create new lead
+      isNewLead = true
       const newLeadData = LeadSchema.parse({
         phoneNumber: payload.caller_phone_number,
         name: payload.caller_name || null,
@@ -277,6 +281,27 @@ export async function POST(request: NextRequest) {
         createdAt: new Date(),
         updatedAt: new Date(),
       })
+      
+      // Send email notification for new lead
+      try {
+        const settings = await getSettings()
+        if (settings?.company?.contactEmail) {
+          await sendEmail({
+            to: settings.company.contactEmail,
+            subject: `🎉 New Lead: ${newLeadData.name || 'Unknown'}`,
+            html: generateNewLeadEmailHTML({
+              name: newLeadData.name || 'Unknown',
+              phoneNumber: newLeadData.phoneNumber,
+              email: newLeadData.email,
+              destination: newLeadData.travelPreferences?.preferredDestinations || null,
+              status: newLeadData.status,
+            }),
+          })
+        }
+      } catch (emailError) {
+        // Don't fail the webhook if email fails
+        console.error('Failed to send new lead email notification:', emailError)
+      }
     }
 
     // Create call document
@@ -317,6 +342,43 @@ export async function POST(request: NextRequest) {
     })
 
     console.log(`✅ Successfully processed call ${payload.call_id} for lead ${leadId}`)
+
+    // Send email notification for EVERY call (not just new leads)
+    try {
+      const settings = await getSettings()
+      const notificationEmail = settings?.company?.contactEmail
+      
+      if (notificationEmail) {
+        // Format duration for display
+        let durationDisplay: string | undefined
+        if (durationSeconds) {
+          const minutes = Math.floor(durationSeconds / 60)
+          const seconds = durationSeconds % 60
+          durationDisplay = minutes > 0 
+            ? `${minutes}m ${seconds}s` 
+            : `${seconds}s`
+        }
+
+        await sendEmail({
+          to: notificationEmail,
+          subject: `📞 Call from ${payload.caller_name || payload.caller_phone_number}`,
+          html: generateCallNotificationEmailHTML({
+            name: payload.caller_name || 'Unknown',
+            phoneNumber: payload.caller_phone_number,
+            summary: summary || 'No summary available',
+            duration: durationDisplay,
+            callId: payload.call_id,
+            isNewLead,
+          }),
+        })
+        console.log(`✅ Call notification email sent to ${notificationEmail}`)
+      } else {
+        console.warn('⚠️ No contact email configured in settings. Skipping call notification.')
+      }
+    } catch (emailError) {
+      // Don't fail the webhook if email fails
+      console.error('Failed to send call notification email:', emailError)
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {

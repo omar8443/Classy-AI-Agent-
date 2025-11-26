@@ -9,7 +9,7 @@ import { ReservationTimeline } from "@/components/reservations/reservation-timel
 import { PricingBreakdown } from "@/components/reservations/pricing-breakdown"
 import { format } from "date-fns"
 import Link from "next/link"
-import { ArrowLeft, User, Calendar, Building2 } from "lucide-react"
+import { ArrowLeft, User, Calendar } from "lucide-react"
 
 function formatPhoneNumber(phone: string): string {
   const digits = phone.replace(/\D/g, "")
@@ -62,7 +62,6 @@ export function ReservationDetailClient({ reservation, lead }: ReservationDetail
             <h1 className="text-3xl font-bold">{reservation.reservationId}</h1>
             <div className="flex items-center gap-2 mt-2">
               <Badge>{reservation.status}</Badge>
-              <Badge>{reservation.paymentStatus}</Badge>
             </div>
           </div>
         </div>
@@ -148,27 +147,6 @@ export function ReservationDetailClient({ reservation, lead }: ReservationDetail
                   <div>
                     <div className="text-sm text-muted-foreground">Hotel Details</div>
                     <div className="text-sm whitespace-pre-wrap">{reservation.travelDetails.hotelDetails}</div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  Booking Platform
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <div className="text-sm text-muted-foreground">Platform</div>
-                  <div className="font-medium capitalize">{reservation.bookingPlatform}</div>
-                </div>
-                {reservation.platformConfirmationNumber && (
-                  <div>
-                    <div className="text-sm text-muted-foreground">Confirmation Number</div>
-                    <div className="font-mono font-medium">{reservation.platformConfirmationNumber}</div>
                   </div>
                 )}
               </CardContent>

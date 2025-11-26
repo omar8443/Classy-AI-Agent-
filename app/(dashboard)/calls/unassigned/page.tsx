@@ -11,10 +11,10 @@ export default async function UnassignedCallsPage() {
   const serializedCalls = JSON.parse(JSON.stringify(calls))
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Requested Agent</h1>
-        <p className="text-muted-foreground mt-2">
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-neutral-900">Agent Requested</h1>
+        <p className="text-neutral-600 mt-2">
           Calls waiting to be assigned to an agent
         </p>
       </div>

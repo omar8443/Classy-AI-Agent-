@@ -1,7 +1,6 @@
 "use client"
 
 import { Reservation } from "@/types/reservation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ReservationsTable } from "@/components/reservations/reservations-table"
 import { PageWrapper } from "@/components/motion/page-wrapper"
 import Link from "next/link"
@@ -32,16 +31,16 @@ export function ReservationsPageClient({
 }: ReservationsPageClientProps) {
   return (
     <PageWrapper>
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Reservations</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <h1 className="text-3xl font-bold text-neutral-900">Reservations</h1>
+            <p className="mt-2 text-sm text-neutral-600">
               Manage travel bookings and reservations
             </p>
           </div>
           <Link href="/reservations/new">
-            <Button>
+            <Button className="bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl px-4 py-2 h-11">
               <Plus className="mr-2 h-4 w-4" />
               New Reservation
             </Button>
@@ -49,48 +48,50 @@ export function ReservationsPageClient({
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{reservations.length}</div>
-              <p className="text-xs text-muted-foreground">All reservations</p>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-2xl p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-neutral-400 uppercase tracking-wide mb-1">Total</p>
+                <p className="text-2xl font-semibold text-neutral-900">{reservations.length}</p>
+                <p className="text-xs text-neutral-400 mt-1">All reservations</p>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-neutral-500" />
+              </div>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Calendar className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{pendingCount}</div>
-              <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-2xl p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-neutral-400 uppercase tracking-wide mb-1">Pending</p>
+                <p className="text-2xl font-semibold text-neutral-900">{pendingCount}</p>
+                <p className="text-xs text-neutral-400 mt-1">Awaiting confirmation</p>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-yellow-600" />
+              </div>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{confirmedCount}</div>
-              <p className="text-xs text-muted-foreground">Active bookings</p>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-2xl p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-neutral-400 uppercase tracking-wide mb-1">Confirmed</p>
+                <p className="text-2xl font-semibold text-neutral-900">{confirmedCount}</p>
+                <p className="text-xs text-neutral-400 mt-1">Active bookings</p>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>All Reservations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ReservationsTable reservations={reservations} />
-          </CardContent>
-        </Card>
+        <div>
+          <h2 className="text-lg font-semibold text-neutral-900 mb-4">All Reservations</h2>
+          <ReservationsTable reservations={reservations} />
+        </div>
       </div>
     </PageWrapper>
   )
