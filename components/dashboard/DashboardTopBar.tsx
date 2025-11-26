@@ -1,7 +1,6 @@
 "use client"
 
 import { useAuth } from "@/lib/hooks/useAuth"
-import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { useState, useEffect } from "react"
 
 export function DashboardTopBar() {
@@ -39,7 +38,6 @@ export function DashboardTopBar() {
         <div className="text-sm font-medium tracking-wide text-neutral-600 px-3 py-1.5 rounded-xl bg-white border border-neutral-100" style={{ fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums' }}>
           {currentTime}
         </div>
-        <ThemeToggle />
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-green-50 border border-green-100">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
           <span className="text-sm font-medium text-green-700">Live</span>

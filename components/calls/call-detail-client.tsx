@@ -57,6 +57,7 @@ export function CallDetailClient({
   const [call, setCall] = useState(initialCall)
   const [isAssigning, setIsAssigning] = useState(false)
   const [notes, setNotes] = useState(initialCall.notes || "")
+  const [quotedPrice, setQuotedPrice] = useState(lead?.quotedPrice?.toString() || "")
   const [isSavingNotes, setIsSavingNotes] = useState(false)
 
   // Parse summary into bullet points
@@ -85,22 +86,33 @@ export function CallDetailClient({
     router.refresh()
   }
 
-  // Save notes
+  // Save notes and quoted price
   const handleSaveNotes = async () => {
     setIsSavingNotes(true)
     try {
-      const response = await fetch(`/api/calls/${call.id}`, {
+      // Update call notes
+      const callResponse = await fetch(`/api/calls/${call.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes }),
       })
-      if (response.ok) {
-        toast({ title: "Notes saved", description: "Your notes have been saved." })
+      
+      // Update lead quoted price if lead exists
+      if (lead?.id && quotedPrice !== lead.quotedPrice?.toString()) {
+        await fetch(`/api/leads/${lead.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quotedPrice }),
+        })
+      }
+      
+      if (callResponse.ok) {
+        toast({ title: "Saved", description: "Your notes and price have been saved." })
       } else {
         throw new Error("Failed to save")
       }
     } catch {
-      toast({ title: "Error", description: "Failed to save notes.", variant: "destructive" })
+      toast({ title: "Error", description: "Failed to save changes.", variant: "destructive" })
     } finally {
       setIsSavingNotes(false)
     }
@@ -297,9 +309,9 @@ export function CallDetailClient({
               </label>
               <input
                 type="text"
-                defaultValue={lead?.quotedPrice?.toString() || ""}
-                readOnly
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring read-only:cursor-not-allowed read-only:bg-muted/50 read-only:text-muted-foreground read-only:border-muted"
+                value={quotedPrice}
+                onChange={(e) => setQuotedPrice(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 placeholder="$0.00"
               />
             </div>
