@@ -267,9 +267,11 @@ export function LeadDetailClient({
                   </a>
                 </Button>
               )}
-              <Button variant="outline" className="w-full justify-start">
-                <Calendar className="h-4 w-4 mr-2" />
-                Create Reservation
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/reservations/new">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Create Reservation
+                </Link>
               </Button>
             </CardContent>
           </Card>
