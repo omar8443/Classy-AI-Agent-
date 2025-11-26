@@ -5,7 +5,7 @@ import { ReservationsTable } from "@/components/reservations/reservations-table"
 import { PageWrapper } from "@/components/motion/page-wrapper"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plus, Calendar, CheckCircle } from "lucide-react"
+import { Plus, Calendar, CheckCircle, CreditCard } from "lucide-react"
 
 type SerializedReservation = Omit<Reservation, "createdAt" | "updatedAt" | "travelDetails" | "documents" | "history"> & {
   createdAt: string
@@ -39,12 +39,20 @@ export function ReservationsPageClient({
               Manage travel bookings and reservations
             </p>
           </div>
-          <Link href="/reservations/new">
-            <Button className="bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl px-4 py-2 h-11">
-              <Plus className="mr-2 h-4 w-4" />
-              New Reservation
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link href="https://204.net3000.ca/users/" target="_blank" rel="noopener noreferrer">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-2 h-11">
+                <CreditCard className="mr-2 h-4 w-4" />
+                CC Authorization
+              </Button>
+            </Link>
+            <Link href="/reservations/new">
+              <Button className="bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl px-4 py-2 h-11">
+                <Plus className="mr-2 h-4 w-4" />
+                New Reservation
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
