@@ -18,14 +18,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Return simplified user data for dropdowns
-    const simplifiedUsers = users
-      .filter((u) => u.status === "active")
-      .map((u) => ({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-      }))
+    const simplifiedUsers = users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+    }))
 
     return NextResponse.json(simplifiedUsers)
   } catch (error) {
