@@ -158,10 +158,9 @@ export function RecentCallsList({ initialCalls }: RecentCallsListProps) {
         const isSelected = selectedIds.has(call.id)
         
         return (
-          <Link
+          <div
             key={call.id}
-            href={`/calls/${call.id}`}
-            className={`group flex items-start justify-between px-5 py-4 bg-white border rounded-xl hover:border-neutral-200 hover:shadow-sm transition-all cursor-pointer ${
+            className={`group flex items-start justify-between px-5 py-4 bg-white border rounded-xl hover:border-neutral-200 hover:shadow-sm transition-all ${
               isSelected ? "border-neutral-900 bg-neutral-50" : "border-neutral-100"
             }`}
           >
@@ -169,7 +168,7 @@ export function RecentCallsList({ initialCalls }: RecentCallsListProps) {
               {/* Checkbox */}
               <button
                 onClick={(e) => handleSelectOne(call.id, e)}
-                className="mt-2 flex-shrink-0"
+                className="mt-2 flex-shrink-0 z-10"
               >
                 {isSelected ? (
                   <CheckSquare className="w-5 h-5 text-neutral-900" />
@@ -178,48 +177,54 @@ export function RecentCallsList({ initialCalls }: RecentCallsListProps) {
                 )}
               </button>
 
-              {/* Avatar circle */}
-              <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-sm font-medium text-neutral-600 flex-shrink-0">
-                {getInitials(call.callerName)}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium text-neutral-900">
-                    {call.callerName || "Unknown Caller"}
-                  </p>
-                  <span className="text-sm text-neutral-400">•</span>
-                  <p className="text-sm text-neutral-400">
-                    {formatPhoneNumber(call.callerPhoneNumber || "No number")}
-                  </p>
+              {/* Clickable content area */}
+              <Link
+                href={`/calls/${call.id}`}
+                className="flex items-start gap-4 flex-1 min-w-0 cursor-pointer"
+              >
+                {/* Avatar circle */}
+                <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-sm font-medium text-neutral-600 flex-shrink-0">
+                  {getInitials(call.callerName)}
                 </div>
                 
-                {/* Summary/Preview */}
-                <p className="text-sm text-neutral-500 line-clamp-2 mb-2">
-                  {preview}
-                </p>
-                
-                <div className="flex items-center gap-2 text-xs text-neutral-400">
-                  <span>{formatDistanceToNow(createdAt, { addSuffix: true })}</span>
-                  {call.assignedToName && (
-                    <>
-                      <span>•</span>
-                      <span>{call.assignedToName}</span>
-                    </>
-                  )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-medium text-neutral-900">
+                      {call.callerName || "Unknown Caller"}
+                    </p>
+                    <span className="text-sm text-neutral-400">•</span>
+                    <p className="text-sm text-neutral-400">
+                      {formatPhoneNumber(call.callerPhoneNumber || "No number")}
+                    </p>
+                  </div>
+                  
+                  {/* Summary/Preview */}
+                  <p className="text-sm text-neutral-500 line-clamp-2 mb-2">
+                    {preview}
+                  </p>
+                  
+                  <div className="flex items-center gap-2 text-xs text-neutral-400">
+                    <span>{formatDistanceToNow(createdAt, { addSuffix: true })}</span>
+                    {call.assignedToName && (
+                      <>
+                        <span>•</span>
+                        <span>{call.assignedToName}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </Link>
             </div>
             
             {/* Delete button */}
             <button
-              className="opacity-0 group-hover:opacity-100 w-8 h-8 rounded-lg bg-neutral-100 hover:bg-red-50 flex items-center justify-center text-neutral-400 hover:text-red-500 transition-all flex-shrink-0 ml-4"
+              className="opacity-0 group-hover:opacity-100 w-8 h-8 rounded-lg bg-neutral-100 hover:bg-red-50 flex items-center justify-center text-neutral-400 hover:text-red-500 transition-all flex-shrink-0 ml-4 z-10"
               disabled={deletingId === call.id}
               onClick={(e) => handleDelete(call.id, e)}
             >
               <Trash2 className="w-4 h-4" />
             </button>
-          </Link>
+          </div>
         )
       })}
     </div>
