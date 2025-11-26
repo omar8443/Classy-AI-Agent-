@@ -136,21 +136,9 @@ export function RecentCallsList({ initialCalls }: RecentCallsListProps) {
 
   return (
     <div className="space-y-3">
-      {/* Select All Controls */}
-      <div className="flex items-center justify-between px-2 py-2 bg-white rounded-xl border border-neutral-100">
-        <button
-          onClick={handleSelectAll}
-          className="flex items-center gap-2 text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
-        >
-          {allSelected ? (
-            <CheckSquare className="w-5 h-5 text-neutral-900" />
-          ) : (
-            <Square className="w-5 h-5 text-neutral-400" />
-          )}
-          <span>{allSelected ? "Deselect All" : "Select All"}</span>
-        </button>
-        
-        {selectedIds.size > 0 && (
+      {/* Delete Selected Button */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-end px-2 py-2 bg-white rounded-xl border border-neutral-100">
           <Button
             onClick={handleDeleteSelected}
             variant="destructive"
@@ -158,10 +146,10 @@ export function RecentCallsList({ initialCalls }: RecentCallsListProps) {
             className="h-8"
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Delete ({selectedIds.size})
+            Delete Selected ({selectedIds.size})
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {calls.map((call) => {
         const createdAt = new Date(call.createdAt)
