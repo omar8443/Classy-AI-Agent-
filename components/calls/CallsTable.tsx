@@ -140,12 +140,12 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
                     </span>
                     {/* Badge d'assignation */}
                     {call.assignedToName ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-900 border border-neutral-200">
+                      <span className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-md bg-neutral-100 text-neutral-900 border border-neutral-200 ml-1">
                         <User className="h-3 w-3" />
                         {call.assignedToName}
                       </span>
                     ) : (
-                      <span className="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-lg bg-orange-100 text-orange-700 border border-orange-200">
+                      <span className="inline-flex items-center text-xs font-medium px-3 py-1.5 rounded-md bg-orange-100 text-orange-700 border border-orange-200 ml-1">
                         Unassigned
                       </span>
                     )}
