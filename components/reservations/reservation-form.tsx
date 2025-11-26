@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { Input } from "@/components/ui/input"
@@ -10,12 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { BookingPlatform, Currency } from "@/types/reservation"
+import { Lead } from "@/types/leads"
 
 export function ReservationForm() {
   const router = useRouter()
   const { user } = useAuth()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [loadingLeads, setLoadingLeads] = useState(true)
   const [formData, setFormData] = useState({
     leadId: "",
     destination: "",
@@ -36,6 +39,29 @@ export function ReservationForm() {
   })
 
   const total = formData.subtotal + formData.taxes + formData.fees
+
+  // Fetch leads on mount
+  useEffect(() => {
+    const fetchLeads = async () => {
+      try {
+        const response = await fetch("/api/leads")
+        if (!response.ok) throw new Error("Failed to fetch leads")
+        const data = await response.json()
+        setLeads(data)
+      } catch (error) {
+        console.error("Error fetching leads:", error)
+        toast({
+          title: "Failed to load leads",
+          description: "Please refresh the page to try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setLoadingLeads(false)
+      }
+    }
+
+    fetchLeads()
+  }, [toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -103,16 +129,31 @@ export function ReservationForm() {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Client Information</h3>
         <div className="space-y-2">
-          <Label htmlFor="leadId">Lead ID *</Label>
-          <Input
-            id="leadId"
+          <Label htmlFor="leadId">Lead *</Label>
+          <Select
             value={formData.leadId}
-            onChange={(e) => setFormData({ ...formData, leadId: e.target.value })}
-            placeholder="Enter lead ID"
-            required
-          />
+            onValueChange={(value) => setFormData({ ...formData, leadId: value })}
+            disabled={loadingLeads}
+          >
+            <SelectTrigger id="leadId">
+              <SelectValue placeholder={loadingLeads ? "Loading leads..." : "Select a lead"} />
+            </SelectTrigger>
+            <SelectContent>
+              {leads.length === 0 ? (
+                <SelectItem value="none" disabled>
+                  No leads available
+                </SelectItem>
+              ) : (
+                leads.map((lead) => (
+                  <SelectItem key={lead.id} value={lead.id}>
+                    {lead.name} - {lead.phone}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
           <p className="text-xs text-muted-foreground">
-            You can find the lead ID in the Leads page
+            Select the client from your existing leads
           </p>
         </div>
       </div>
