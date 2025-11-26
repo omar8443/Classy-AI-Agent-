@@ -38,7 +38,17 @@ export function ReservationForm() {
     notes: "",
   })
 
-  const total = formData.subtotal + formData.taxes + formData.fees
+  // Quebec tax rate: GST (5%) + QST (9.975%) = 14.975%
+  const QUEBEC_TAX_RATE = 0.14975
+
+  // Calculate taxes automatically based on subtotal
+  const calculatedTaxes = formData.subtotal * QUEBEC_TAX_RATE
+  const total = formData.subtotal + calculatedTaxes + formData.fees
+
+  // Update taxes when subtotal changes
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, taxes: calculatedTaxes }))
+  }, [calculatedTaxes])
 
   // Fetch leads on mount
   useEffect(() => {
@@ -282,21 +292,29 @@ export function ReservationForm() {
               type="number"
               step="0.01"
               min="0"
-              value={formData.subtotal}
-              onChange={(e) => setFormData({ ...formData, subtotal: parseFloat(e.target.value) || 0 })}
+              value={formData.subtotal === 0 ? "" : formData.subtotal}
+              onChange={(e) => {
+                const value = e.target.value === "" ? 0 : parseFloat(e.target.value)
+                setFormData({ ...formData, subtotal: isNaN(value) ? 0 : value })
+              }}
+              placeholder="0.00"
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="taxes">Taxes</Label>
+            <Label htmlFor="taxes">Taxes (Calculated)</Label>
             <Input
               id="taxes"
               type="number"
               step="0.01"
               min="0"
-              value={formData.taxes}
-              onChange={(e) => setFormData({ ...formData, taxes: parseFloat(e.target.value) || 0 })}
+              value={calculatedTaxes.toFixed(2)}
+              readOnly
+              className="bg-muted/50 cursor-not-allowed"
             />
+            <p className="text-xs text-muted-foreground">
+              Quebec: GST 5% + QST 9.975%
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="fees">Fees</Label>
@@ -305,16 +323,34 @@ export function ReservationForm() {
               type="number"
               step="0.01"
               min="0"
-              value={formData.fees}
-              onChange={(e) => setFormData({ ...formData, fees: parseFloat(e.target.value) || 0 })}
+              value={formData.fees === 0 ? "" : formData.fees}
+              onChange={(e) => {
+                const value = e.target.value === "" ? 0 : parseFloat(e.target.value)
+                setFormData({ ...formData, fees: isNaN(value) ? 0 : value })
+              }}
+              placeholder="0.00"
             />
           </div>
         </div>
 
-        <div className="rounded-lg bg-muted p-4">
-          <div className="flex items-center justify-between text-lg font-semibold">
-            <span>Total</span>
-            <span>{formData.currency} ${total.toFixed(2)}</span>
+        <div className="rounded-lg bg-muted p-4 space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Subtotal</span>
+            <span>{formData.currency} ${formData.subtotal.toFixed(2)}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Taxes (14.975%)</span>
+            <span>{formData.currency} ${calculatedTaxes.toFixed(2)}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Fees</span>
+            <span>{formData.currency} ${formData.fees.toFixed(2)}</span>
+          </div>
+          <div className="border-t border-border pt-2 mt-2">
+            <div className="flex items-center justify-between text-lg font-semibold">
+              <span>Total</span>
+              <span>{formData.currency} ${total.toFixed(2)}</span>
+            </div>
           </div>
         </div>
       </div>
