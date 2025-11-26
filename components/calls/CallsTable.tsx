@@ -131,18 +131,23 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search calls..."
+          placeholder="Search calls by name, phone, or transcript..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 max-w-sm"
+          className="pl-10 h-10 max-w-md shadow-sm border-border/60 focus-visible:border-primary/50"
         />
       </div>
 
       {filteredCalls.length === 0 ? (
-        <div className="py-16 text-center">
-          <Phone className="mx-auto h-12 w-12 text-muted-foreground/50" />
-          <p className="mt-4 text-muted-foreground">
-            {calls.length === 0 ? "No calls yet" : "No calls match your search"}
+        <div className="py-20 text-center">
+          <div className="mx-auto h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <Phone className="h-8 w-8 text-muted-foreground/60" />
+          </div>
+          <h3 className="text-base font-semibold mb-1">
+            {calls.length === 0 ? "No calls yet" : "No matching calls"}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {calls.length === 0 ? "Calls will appear here when they come in" : "Try adjusting your search query"}
           </p>
         </div>
       ) : (
@@ -155,38 +160,38 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
               <div
                 key={call.id}
                 onClick={() => router.push(`/calls/${call.id}`)}
-                className={`group flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                className={`group flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
                   isUnassigned 
-                    ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-950/30" 
-                    : "bg-card hover:bg-accent/50"
+                    ? "bg-orange-50/50 dark:bg-orange-950/10 border-orange-200/60 dark:border-orange-900/50 hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:shadow-sm" 
+                    : "bg-card hover:bg-accent/30 hover:shadow-sm hover:border-border/80"
                 }`}
               >
                 {/* Avatar */}
                 <div className="flex-shrink-0">
-                  <div className={`h-9 w-9 rounded-full flex items-center justify-center ${
-                    isUnassigned ? "bg-orange-200 dark:bg-orange-800" : "bg-primary/10"
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-colors ${
+                    isUnassigned ? "bg-orange-100 dark:bg-orange-900/30" : "bg-primary/10"
                   }`}>
-                    <Phone className={`h-4 w-4 ${isUnassigned ? "text-orange-600 dark:text-orange-300" : "text-primary"}`} />
+                    <Phone className={`h-4 w-4 ${isUnassigned ? "text-orange-600 dark:text-orange-400" : "text-primary"}`} />
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-sm">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="font-semibold text-sm">
                       {call.callerName || "Unknown"}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground font-medium">
                       {formatPhoneNumber(call.callerPhoneNumber)}
                     </span>
                     {/* Badge d'assignation */}
                     {call.assignedToName ? (
-                      <Badge className={`text-xs ${getAgentColor(call.assignedToName)}`}>
+                      <Badge className={`text-xs font-medium px-2.5 py-0.5 ${getAgentColor(call.assignedToName)}`}>
                         <User className="h-3 w-3 mr-1" />
                         {call.assignedToName}
                       </Badge>
                     ) : (
-                      <Badge className="text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+                      <Badge className="text-xs font-medium px-2.5 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200/50 dark:border-orange-800/50">
                         Unassigned
                       </Badge>
                     )}
@@ -194,20 +199,20 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
                 </div>
 
                 {/* Time & Actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-3 flex-shrink-0">
                   <div className="text-right text-xs">
-                    <div className="font-medium flex items-center gap-1 justify-end">
-                      <Clock className="h-3 w-3" />
+                    <div className="font-semibold flex items-center gap-1.5 justify-end text-foreground">
+                      <Clock className="h-3 w-3 text-muted-foreground" />
                       {formatDistanceToNow(createdAt, { addSuffix: true })}
                     </div>
-                    <div className="text-muted-foreground">{format(createdAt, "MMM d, h:mm a")}</div>
+                    <div className="text-muted-foreground font-medium">{format(createdAt, "MMM d, h:mm a")}</div>
                   </div>
                   
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7"
+                      className="h-8 w-8 hover:bg-accent"
                       disabled={archivingId === call.id}
                       onClick={(e) => handleArchive(call.id, e)}
                     >
@@ -216,7 +221,7 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                       disabled={deletingId === call.id}
                       onClick={(e) => handleDelete(call.id, e)}
                     >
@@ -224,7 +229,7 @@ export function CallsTable({ calls: initialCalls }: CallsTableProps) {
                     </Button>
                   </div>
                   
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </div>
               </div>
             )

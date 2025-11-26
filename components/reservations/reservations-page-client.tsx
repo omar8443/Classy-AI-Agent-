@@ -6,7 +6,7 @@ import { ReservationsTable } from "@/components/reservations/reservations-table"
 import { PageWrapper } from "@/components/motion/page-wrapper"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plus, Calendar, CheckCircle, DollarSign } from "lucide-react"
+import { Plus, Calendar, CheckCircle } from "lucide-react"
 
 type SerializedReservation = Omit<Reservation, "createdAt" | "updatedAt" | "travelDetails" | "documents" | "history"> & {
   createdAt: string
@@ -23,14 +23,12 @@ interface ReservationsPageClientProps {
   reservations: SerializedReservation[]
   pendingCount: number
   confirmedCount: number
-  totalRevenue: number
 }
 
 export function ReservationsPageClient({
   reservations,
   pendingCount,
   confirmedCount,
-  totalRevenue,
 }: ReservationsPageClientProps) {
   return (
     <PageWrapper>
@@ -50,7 +48,7 @@ export function ReservationsPageClient({
           </Link>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total</CardTitle>
@@ -81,17 +79,6 @@ export function ReservationsPageClient({
             <CardContent>
               <div className="text-2xl font-bold">{confirmedCount}</div>
               <p className="text-xs text-muted-foreground">Active bookings</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Total paid</p>
             </CardContent>
           </Card>
         </div>

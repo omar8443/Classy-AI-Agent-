@@ -44,12 +44,14 @@ export function DashboardSidebar() {
   }
 
   return (
-    <div className="flex w-64 flex-col border-r border-border bg-card">
-      <div className="flex h-[85px] items-center justify-center gap-2 border-b border-border px-4">
-        <Plane className="h-4 w-4 text-primary" />
-        <h1 className="text-lg font-semibold whitespace-nowrap">Voyages Classy Travel</h1>
+    <div className="flex w-64 flex-col border-r border-border bg-card/50 backdrop-blur-sm">
+      <div className="flex h-[72px] items-center justify-center gap-2 border-b border-border px-6">
+        <div className="p-2 rounded-lg bg-primary/10">
+          <Plane className="h-5 w-5 text-primary" />
+        </div>
+        <h1 className="text-base font-bold whitespace-nowrap">Voyages Classy</h1>
       </div>
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-1 p-3">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = isNavItemActive(item.href)
@@ -58,11 +60,13 @@ export function DashboardSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
-                isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                isActive 
+                  ? "bg-primary text-primary-foreground shadow-sm" 
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-4 w-4" />
               {item.label}
             </Link>
           )
@@ -70,8 +74,8 @@ export function DashboardSidebar() {
         
         {isAdmin && (
           <>
-            <div className="my-4 border-t border-border pt-4">
-              <p className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+            <div className="my-3 border-t border-border pt-3">
+              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                 Administration
               </p>
             </div>
@@ -83,11 +87,13 @@ export function DashboardSidebar() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
-                    isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                    isActive 
+                      ? "bg-primary text-primary-foreground shadow-sm" 
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   )}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               )
@@ -95,9 +101,9 @@ export function DashboardSidebar() {
           </>
         )}
       </nav>
-      <div className="border-t border-border p-4">
-        <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => signOut()}>
-          <LogOut className="h-5 w-5" />
+      <div className="border-t border-border p-3">
+        <Button variant="ghost" className="w-full justify-start gap-3 text-sm font-medium" onClick={() => signOut()}>
+          <LogOut className="h-4 w-4" />
           Sign out
         </Button>
       </div>

@@ -12,16 +12,12 @@ export default async function ReservationsPage() {
 
   const pendingCount = serializedReservations.filter((r: any) => r.status === "pending").length
   const confirmedCount = serializedReservations.filter((r: any) => r.status === "confirmed").length
-  const totalRevenue = serializedReservations
-    .filter((r: any) => r.paymentStatus === "paid")
-    .reduce((sum: number, r: any) => sum + r.pricing.total, 0)
 
   return (
     <ReservationsPageClient
       reservations={serializedReservations}
       pendingCount={pendingCount}
       confirmedCount={confirmedCount}
-      totalRevenue={totalRevenue}
     />
   )
 }
