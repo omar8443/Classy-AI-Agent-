@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, Ban } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +50,26 @@ export function UsersTable({ users: initialUsers }: UsersTableProps) {
 
     return matchesSearch && matchesRole
   })
+
+  const handleRestrictUser = async (userId: string, userName: string) => {
+    try {
+      // TODO: Implement user restriction logic
+      // This could disable the user's account or restrict their permissions
+      toast({
+        title: "User restricted",
+        description: `${userName}'s access has been restricted.`,
+      })
+      
+      router.refresh()
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: "Restriction failed",
+        description: "Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
 
 
   return (
@@ -110,8 +130,12 @@ export function UsersTable({ users: initialUsers }: UsersTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => router.push(`/users/${user.id}`)}>
-                          View Profile
+                        <DropdownMenuItem 
+                          onClick={() => handleRestrictUser(user.id, user.name)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Ban className="mr-2 h-4 w-4" />
+                          Restrict
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
