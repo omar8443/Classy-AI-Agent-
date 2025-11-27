@@ -5,13 +5,12 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { usePermissions } from "@/lib/hooks/usePermissions"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Phone, Users, LogOut, Plane, UserCog, Settings, CalendarCheck, ClipboardCheck, UserPlus, UserCircle } from "lucide-react"
+import { LayoutDashboard, Phone, Users, LogOut, Plane, UserCog, Settings, CalendarCheck, UserCircle } from "lucide-react"
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
   { href: "/calls", label: "Calls", icon: Phone, adminOnly: false },
-  { href: "/calls/unassigned", label: "Agent Requested", icon: UserPlus, adminOnly: false },
-  { href: "/agent-requested", label: "Assigned to Me", icon: ClipboardCheck, adminOnly: false },
+  { href: "/agent-requested", label: "Agent Requested", icon: Phone, adminOnly: false },
   { href: "/leads", label: "Leads", icon: Users, adminOnly: false },
   { href: "/reservations", label: "Reservations", icon: CalendarCheck, adminOnly: false },
   { href: "/profile", label: "Profile", icon: UserCircle, adminOnly: false },
@@ -34,9 +33,9 @@ export function DashboardSidebar() {
     // Special case for root
     if (itemHref === "/") return false
     
-    // Special case for /calls - only match /calls/[id] but not /calls/unassigned
+    // Special case for /calls - only match /calls/[id]
     if (itemHref === "/calls") {
-      return pathname.startsWith("/calls/") && !pathname.startsWith("/calls/unassigned")
+      return pathname.startsWith("/calls/")
     }
     
     // For other routes, match if pathname starts with href
